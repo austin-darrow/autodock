@@ -26,15 +26,20 @@ def benchmark(start_time, end_time, num_ligands, model, forcefield):
 def dock_ligands(model='basic', forcefield='vina'):
     if not os.path.exists('output'):
         os.makedirs('output')
-
-    #results = open("results.txt", 'a+')
+    
+    results = open("results.txt", 'w+')
+    parsed_results = open("parsed_results.txt", 'a+')
     for file in os.listdir('/work/09252/adarrow/ls6/autodock/input'):
         #if model=='basic' and forcefield=='vina':
-        result = subprocess.run(["vina", '--receptor', '1iep_receptor.pdbqt', '--ligand', f'./input/{file}', '--config', \
-                                 "1iep_receptor_vina_box.txt", "--exhaustiveness=32", '--dir', 'output', \
-                                 '--out', f'./output/{file}_vina_out.pdbqt', '|', 'sed', '-n', '22p; 39p'], shell=True)
-        #results.write(result.stdout)
-    #results.close()
+        
+        result = subprocess.run(["vina", "--receptor", "1iep_receptor.pdbqt", "--ligand", f'./input/{file}', "--config", "1iep_receptor_vina_box.txt", "--exhaustiveness=32", "--dir", "./output", "--out", f'./output/VINA_OUT_{file}'], capture_output=True, text=True)
+        results.write(result.stdout)
+        parsed_results.write(str(file))
+        #command = "awk 'NR % 47 == 39' results.txt > parsed_results.txt"
+        #subprocess.run([command])
+
+    results.close()
+    parsed_results.close()
 
 def main():
     start_time = time.time()
