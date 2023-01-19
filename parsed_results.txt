@@ -1,2 +1,0 @@
-Ligand: ./input/ZINC00001567.pdbqt
-   6       -9.634      3.792      11.56
