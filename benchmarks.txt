@@ -1,0 +1,10 @@
+
+Ligands: 10
+Model: basic
+Forcefield: vina
+Start: 1674245669.3786943 || End: 1674245679.8411713 || Total time: 10.462476968765259
+
+Ligands: 10
+Model: basic
+Forcefield: vina
+Start: 1674246111.9699054 || End: 1674246122.3479185 || Total time: 10.378013134002686
