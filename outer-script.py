@@ -20,8 +20,9 @@ def benchmark(start_time, end_time, num_ligands, model, forcefield):
     benchmark_file.close()
 
 def sort():
-    INPUTFILE = f'results_{FORCEFIELD}_{MODEL}.txt'
-    OUTPUTFILE = 'parsed_results.txt'
+    subprocess.run([f"cat *results* >> results_merged.txt"], shell=True)
+    INPUTFILE = f'results_merged.txt'
+    OUTPUTFILE = 'results_processed.txt'
 
     result = []
     
