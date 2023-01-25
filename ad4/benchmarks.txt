@@ -1,0 +1,5 @@
+
+Type: vina_module Ligands: 10
+Model: basic
+Forcefield: ad4
+Start: 1674676940.8631024 || End: 1674677028.651654 || Total time: 87.78855156898499

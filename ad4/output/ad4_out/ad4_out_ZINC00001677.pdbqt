@@ -1,0 +1,26 @@
+MODEL 1
+REMARK VINA RESULT:    -7.130      0.000      0.000
+REMARK INTER + INTRA:          -7.130
+REMARK INTER:                  -7.130
+REMARK INTRA:                   0.000
+REMARK CONF_INDEPENDENT:        0.000
+REMARK UNBOUND:                -0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  C1  <0> d          11.317  47.597  14.855  0.00  0.00     0.052 C 
+ATOM      2  C2  <0> d          10.560  47.151  13.631  0.00  0.00    -0.007 A 
+ATOM      3  C3  <0> d           9.224  47.254  13.606  0.00  0.00     0.066 A 
+ATOM      4  C4  <0> d           8.453  46.826  12.423  0.00  0.00     0.183 A 
+ATOM      5  O1  <0> d           7.242  46.927  12.417  0.00  0.00    -0.288 OA
+ATOM      6  C5  <0> d           9.159  46.277  11.246  0.00  0.00     0.028 A 
+ATOM      7  C6  <0> d           8.456  45.868  10.120  0.00  0.00     0.016 A 
+ATOM      8  C7  <0> d           9.142  45.356   9.028  0.00  0.00     0.001 A 
+ATOM      9  C8  <0> d          10.520  45.249   9.054  0.00  0.00     0.001 A 
+ATOM     10  C9  <0> d          11.234  45.653  10.170  0.00  0.00     0.016 A 
+ATOM     11  C10 <0> d          10.561  46.168  11.272  0.00  0.00     0.029 A 
+ATOM     12  C11 <0> d          11.300  46.613  12.474  0.00  0.00     0.189 A 
+ATOM     13  O2  <0> d          12.511  46.530  12.509  0.00  0.00    -0.287 OA
+ENDROOT
+TORSDOF 0
+ENDMDL
