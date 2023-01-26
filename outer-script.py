@@ -2,16 +2,12 @@ import time
 import subprocess
 import os
 import sys
+from os.path import exists
 from os.path import basename
 
-NUM_LIGANDS = 10
+NUM_LIGANDS = 10000
 MODEL = 'basic'
 FORCEFIELD = 'vina'
-
-def filegen(directory):
-    f = open('filelist.txt', 'a+')
-    for filename in os.listdir(directory):
-        f.write(filename + "\n")
 
 def benchmark(start_time, end_time, num_ligands, model, forcefield):
     benchmark_file = open("benchmarks.txt", 'a+')
@@ -20,27 +16,26 @@ def benchmark(start_time, end_time, num_ligands, model, forcefield):
     benchmark_file.close()
 
 def sort():
-    subprocess.run([f"cat *results* >> results_merged.txt"], shell=True)
-    INPUTFILE = f'results_merged.txt'
-    OUTPUTFILE = 'results_processed.txt'
-
-    result = []
+    subprocess.run(["cat results* >> results_merged.txt"], shell=True)
+    INPUTFILE = 'results_merged.txt'
+    OUTPUTFILE = 'processed_results.txt'
     
+    result = []
+
     with open(INPUTFILE) as data:
         while line := data.readline():
             filename = basename(line.split()[-1])
             v = data.readline().split()[0]
             result.append(f'{v} {filename}\n')
 
-
     with open(OUTPUTFILE, 'w') as data:
-        data.writelines(sorted(result, key=lambda x: float(x.split()[0])))
+        data.writelines(sorted(result, key=lambda x: float(x.split()[1])))
     
+    subprocess.run(["rm results*"], shell=True)
 
 def run_trial():
-    filegen('/work/09252/adarrow/ls6/autodock/input/ligands')
     start_time = time.time()
-    subprocess.run(["mpiexec -n 4 python mpi-script.py"], shell=True)
+    subprocess.run(["ibrun -n 16 python module_vina.py"], shell=True)
     end_time = time.time()
     benchmark(start_time, end_time, NUM_LIGANDS, MODEL, FORCEFIELD)
     sort()

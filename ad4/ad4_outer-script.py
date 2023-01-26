@@ -5,22 +5,21 @@ import sys
 from os.path import exists
 from os.path import basename
 
-NUM_LIGANDS = 10
+NUM_LIGANDS = 10000
 MODEL = 'basic'
 FORCEFIELD = 'ad4'
-TYPE = 'vina_module'
 receptor = '1iep_receptor'
 
 def benchmark(start_time, end_time, num_ligands, model, forcefield):
     benchmark_file = open("benchmarks.txt", 'a+')
-    benchmark_file.write("\n" + f'Type: {TYPE} ' + f'Ligands: {num_ligands}' + "\n" + f'Model: {model}' + "\n" + f'Forcefield: {forcefield}'+ "\n")
+    benchmark_file.write("\n" + f'Ligands: {num_ligands}' + "\n" + f'Model: {model}' + "\n" + f'Forcefield: {forcefield}'+ "\n")
     benchmark_file.write("Start: " + str(start_time) + " || End: " + str(end_time) + f' || Total time: {end_time - start_time}' + "\n")
     benchmark_file.close()
 
 def process_results():
-    subprocess.run([f"cat *results* >> results_merged.txt"], shell=True)
-    INPUTFILE = f'results_merged.txt'
-    OUTPUTFILE = 'final_results_processed.txt'
+    subprocess.run(["cat results* >> results_merged.txt"], shell=True)
+    INPUTFILE = 'results_merged.txt'
+    OUTPUTFILE = 'processed_results.txt'
     
     result = []
 
