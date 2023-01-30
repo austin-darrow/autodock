@@ -8,12 +8,30 @@ import sys
 from os.path import exists
 from os.path import basename
 
-# Set variables
+# Setup
+comm = MPI.COMM_WORLD
+size = comm.Get_size()
+rank = comm.Get_rank()
+ 
 receptor='1iep_receptor'
-docking_type = 'vina'
+docking_type = 'ad4'
 ligand_library = ''
-num_ligands = 10000
-model = 'basic'
+
+def prep_maps(receptor):
+    if docking_type == 'ad4':
+        if exists(f'{receptor}.gpf'):
+            subprocess.run([f"rm {receptor}.gpf"], shell=True)
+        subprocess.run([f"python3 ./scripts/write-gpf.py --box ./configs/config.config ./input/receptors/{receptor}.pdbqt"], shell=True)
+        subprocess.run([f"./scripts/autogrid4 -p {receptor}.gpf"], shell=True)
+
+def prep_receptor(receptor):
+    if exists(f'/scratch/09252/adarrow/autodock/input/receptors/{receptor}H.pdb'):
+        subprocess.run([f'./scripts/prepare_receptor -r ./input/receptors/{receptor}H.pdb -o ./input/receptors/{receptor}.pdbqt'], shell=True)
+
+def run_docking(ligand, v, filename):
+    v.set_ligand_from_string(ligand)
+    v.dock()
+    v.write_poses(f'./output/{docking_type}/output_{filename}', n_poses=1, overwrite=True)
 
 def sort():
     subprocess.run(["cat results* >> results_merged.txt"], shell=True)
@@ -33,40 +51,17 @@ def sort():
     
     subprocess.run(["rm results*; mv *map* *.gpf ./output/maps"], shell=True)
 
-def run_docking(ligand, v, filename):
-    v.set_ligand_from_string(ligand)
-    v.dock()
-    v.write_poses(f'./output/{docking_type}/output_{filename}', n_poses=1, overwrite=True)
-
-
-def prep_maps(receptor):
-    if docking_type == 'ad4':
-        if exists('{receptor}.gpf'):
-            subprocess.run([f"rm {receptor}.gpf"], shell=True)
-        subprocess.run([f"python3 /scripts/write-gpf.py --box /configs/config.config /input/receptors/{receptor}.pdbqt"], shell=True)
-        subprocess.run([f"/scripts/autogrid4 -p /input/receptors/{receptor}.gpf"], shell=True)
-
-def conversion(receptor):
-    if exists('./input/receptors/{receptor}.pdb'):
-        subprocess.run([f'./scripts/prepare_receptor -r ./input/receptors/{receptor}.pdb -o ./input/receptors/{receptor}.pdbqt'], shell=True)
-
-def pre_processing():
-    prep_maps(receptor)
-    conversion(receptor)
-
 def main():
-    # Setup
-    comm = MPI.COMM_WORLD
-    size = comm.Get_size()
-    rank = comm.Get_rank()
-    
     # Pre-Processing (only rank 0)
     if rank == 0:
-        pre_processing()
-    comm.Barrier()
+        prep_receptor(receptor)
+        prep_maps(receptor)
+        for i in range(size):
+            comm.send('', dest=i)
+    else:
+        comm.recv(source=0)
 
     # Initialize Vina or AD4 configurations
-    docking_type = 'vina'
     ligands = pickle.load(open('./input/ligands_10.pkl', 'rb'))
     
     if docking_type == 'vina':
@@ -85,10 +80,9 @@ def main():
             subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' ./output/{docking_type}/output_{filename} \
                             | awk '{{print $4}}' >> results_{rank}.txt; echo {filename} \
                             >> results_{rank}.txt"], shell=True)
-    
-    # Post-Processing
-    sort()
-    end_time = time.time()
-    benchmark(start_time, end_time, num_ligands, model, docking_type)
+    comm.Barrier()
+    # Post-Processing (only rank 0)
+    if rank == 0:
+        sort()
 
 main()
