@@ -2,9 +2,6 @@ from vina import Vina
 from mpi4py import MPI
 import subprocess
 import pickle
-import time
-import os
-import sys
 from os.path import exists
 from os.path import basename
 
@@ -16,6 +13,15 @@ rank = comm.Get_rank()
 receptor='1iep_receptor'
 docking_type = 'ad4'
 ligand_library = ''
+user_configs = ['center_x = 15.190', 'center_y = 53.903', \
+                'center_z = 16.917', 'size_x = 20.0', \
+                'size_y = 20.0', 'size_z = 20.0']
+
+def prep_config(user_configs):
+    with open('./configs/config.config', 'w+') as f:
+        for config in user_configs:
+            f.write(f'{config}\n')
+    f.close()
 
 def prep_maps(receptor):
     if docking_type == 'ad4':
@@ -54,6 +60,7 @@ def sort():
 def main():
     # Pre-Processing (only rank 0)
     if rank == 0:
+        prep_config(user_configs)
         prep_receptor(receptor)
         prep_maps(receptor)
         for i in range(size):
