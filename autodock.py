@@ -3,6 +3,7 @@ from mpi4py import MPI
 import subprocess
 import pickle
 import blosc
+import os
 from os.path import exists
 from os.path import basename
 
@@ -14,7 +15,7 @@ rank = comm.Get_rank()
 receptor='1fpu_receptor'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors/{receptor}'
 docking_type = 'vina'
-ligand_library = './input/ligands_10.pkl'
+ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC-Pickled'
 config_path = '/.configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
@@ -39,6 +40,11 @@ def prep_receptor():
 
 def prep_ligands():
     # Returns a list where each item is the path to a pickled and compressed text file containing multiple ligand strings
+    ligand_paths = []
+    for dirpath, dirnames, filenames in os.walk(ligand_library):
+        for filename in filenames:
+            ligand_paths.append(f'{dirpath}/{filename}')
+    return ligand_paths
 
 def run_docking(ligands, v):
     for index, filename in enumerate(ligands):
