@@ -4,3 +4,5 @@ output/ad4/*
 output/maps/*
 output/processed_results.txt
 scripts/Enamine-PC-Pickled
+./old
+./Makefile
