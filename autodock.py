@@ -86,7 +86,8 @@ def processing():
     while True:
         comm.send(rank,dest=0) # Ask rank 0 for another set of ligands
         ligand_set_path = comm.recv(source=0) # Wait for a response
-        if ligand_set_path == 'done':
+        if ligand_set_path == 'no more ligands':
+            comm.send('message received--proceed to post-processing',dest=0)
             break
         # Pickle load and de-compress ligand set
         ligands = unpickle_and_decompress(ligand_set_path)
@@ -119,7 +120,7 @@ def main():
         ligands = pre_processing()
         # Let other ranks know pre-processing is finished; they can now ask for work
         for i in range(size):
-            comm.sendrecv('', dest=i)
+            comm.sendrecv('pre-processing finished; ask for work', dest=i)
 
         # Until all ligands have been docked, send more work to worker ranks
         while ligands:
@@ -128,7 +129,8 @@ def main():
 
         # When all ligands have been sent, let worker ranks know they can stop
         for i in range(size):
-            comm.send('done', dest=i)
+            comm.send('no more ligands', dest=i)
+            comm.recv(source=i)
 
         # Post-Processing
         sort()
