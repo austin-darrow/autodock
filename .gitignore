@@ -6,3 +6,6 @@ output/processed_results.txt
 scripts/Enamine-PC-Pickled
 old
 Makefile
+results*
+merged.txt
+benchmarks.txt
