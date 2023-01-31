@@ -1,19 +1,13 @@
 import os
 import os.path
 import pickle
+import blosc
+import copy
 
 MAX_LIGANDS_PER_SET = 1000
-
-ligands = {}
 path = '../../Enamine-PC'
-for dirpath, dirnames, filenames in os.walk(path):
-    for filename in [f for f in filenames]:    
-        ligand = open(f'{dirpath}/{filename}', 'r')
-        ligands[filename] = ligand.read()
+ligands = {}
 
-#pickle.dump(ligands, open('ligands_10.pkl', 'wb'))
-
-import copy
 def split_dict_to_multiple(input_dict, max_limit=200):
     """Splits dict into multiple dicts with given maximum size. 
     Returns a list of dictionaries."""
@@ -29,10 +23,24 @@ def split_dict_to_multiple(input_dict, max_limit=200):
     chunks.append(curr_dict)
     return chunks
 
-chunked_list_of_dicts = split_dict_to_multiple(ligands, MAX_LIGANDS_PER_SET)
-
-def pickler(chunked_list_of_dicts):
+def pickle_and_compress(chunked_list_of_dicts):
     for index, dictionary in enumerate(chunked_list_of_dicts):
-        pickle.dump(dictionary, open(f'./Enamine-PC-Pickled/ligands_{index}.pkl', 'wb'))
+        pickled_dict = pickle.dumps(dictionary)
+        compressed_pickle = blosc.compress(pickled_dict)
+        with open(f'./Enamine-PC-Pickled/ligands_{index}.dat', 'wb') as f:
+            f.write(compressed_pickle)
 
-pickler(chunked_list_of_dicts)
+def main():
+    for dirpath, dirnames, filenames in os.walk(path):
+        for filename in [f for f in filenames]:    
+            ligand = open(f'{dirpath}/{filename}', 'r')
+            ligands[filename] = ligand.read()
+
+    chunked_list_of_dicts = split_dict_to_multiple(ligands, MAX_LIGANDS_PER_SET)
+    pickle_and_compress(chunked_list_of_dicts)
+
+
+
+
+
+main()
