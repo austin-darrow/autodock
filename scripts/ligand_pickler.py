@@ -4,7 +4,7 @@ import pickle
 import blosc
 import copy
 
-MAX_LIGANDS_PER_SET = 1000
+MAX_LIGANDS_PER_SET = 10
 path = '../../Enamine-PC'
 ligands = {}
 
@@ -24,11 +24,18 @@ def split_dict_to_multiple(input_dict, max_limit=200):
     return chunks
 
 def pickle_and_compress(chunked_list_of_dicts):
+    subdirectory = 1
+    file_count = 0
     for index, dictionary in enumerate(chunked_list_of_dicts):
         pickled_dict = pickle.dumps(dictionary)
         compressed_pickle = blosc.compress(pickled_dict)
-        with open(f'./Enamine-PC-Pickled/ligands_{index}.dat', 'wb') as f:
+        if not os.path.exists(f'./Enamine-PC-Pickled/{subdirectory}'):
+            os.makedirs(f'./Enamine-PC-Pickled/{subdirectory}')
+        with open(f'./Enamine-PC-Pickled/{subdirectory}/ligands_{index}.dat', 'wb') as f:
             f.write(compressed_pickle)
+        file_count += 1
+        if file_count % 1000 == 0:
+            subdirectory += 1
 
 def main():
     for dirpath, dirnames, filenames in os.walk(path):

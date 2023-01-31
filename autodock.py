@@ -16,14 +16,14 @@ receptor='1fpu_receptor'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors/{receptor}'
 docking_type = 'vina'
 ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC-Pickled'
-config_path = '/.configs/config.config'
+config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
                 'size_y': '20.0', 'size_z': '20.0'}
 
 def prep_config():
     with open(config_path, 'w+') as f:
-        for config, value in user_configs:
+        for config, value in user_configs.items():
             f.write(f'{config} = {value}\n')
     f.close()
 
@@ -90,12 +90,13 @@ def main():
         ligands = prep_ligands()
         # Let other ranks know pre-processing is finished; they can now ask for work
         for i in range(size):
-            comm.send('', dest=i)
+            comm.sendrecv('', dest=i)
 
         # Until all ligands have been docked, send more work to worker ranks
         while ligands:
-            worker_task = comm.recv(source=MPI.ANY_SOURCE)
-            comm.send(ligands.pop(), dest=worker_task)
+            source = comm.recv(source=MPI.ANY_SOURCE)
+            print(f'the source I received was {source}')
+            comm.send(ligands.pop(), dest=source)
 
         # When all ligands have been sent, let worker ranks know they can stop
         for i in range(size):
@@ -105,19 +106,22 @@ def main():
         sort()
     else: # All ranks besides rank 0
         comm.recv(source=0) # Wait for rank 0 to finish pre-processing
+        comm.send(rank, dest=0)
         
         # Initialize Vina or AD4 configurations
         if docking_type == 'vina':
             v = Vina(sf_name='vina', cpu=1, verbosity=0)
             v.set_receptor(f'{receptor_path}.pdbqt')
             uc = user_configs
-            v.compute_vina_maps(center=[uc[center_x], uc[center_y], uc[center_z]], box_size=[uc[size_x], uc[size_y], uc[size_z]])
+            v.compute_vina_maps(center=[float(uc['center_x']), float(uc['center_y']), float(uc['center_z'])], \
+                                box_size=[float(uc['size_x']), float(uc['size_y']), float(uc['size_z'])])
         elif docking_type == 'ad4':
             v = Vina(sf_name='ad4', cpu=1, verbosity=0)
             v.load_maps(map_prefix_filename = receptor)
         
         # Ask rank 0 for ligands and dock until rank 0 says done
         while True:
+            print(f'My rank is {rank}')
             comm.send(rank,dest=0) # Ask rank 0 for another set of ligands
             ligand_set_path = comm.recv(source=0) # Wait for a response
             if ligand_set_path == 'done':
@@ -125,6 +129,7 @@ def main():
             # Pickle load and de-compress ligand set
             ligands = unpickle_and_decompress(ligand_set_path)
             # Dock each ligand in the set
+            print(f'Rank {rank} docking ligand set {ligand_set_path}')
             run_docking(ligands, v)
 
 
