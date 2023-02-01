@@ -12,10 +12,12 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
  
-receptor='1iep_receptor'
+receptor='1fpu_receptor'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors/{receptor}'
+sidechains = ['THR315']
 docking_type = 'vina'
-ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC-Pickled'
+flexible = False
+ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC/50_sets'
 config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
@@ -37,6 +39,8 @@ def prep_maps():
 def prep_receptor():
     if exists(f'{receptor_path}H.pdb'):
         subprocess.run([f'./scripts/prepare_receptor -r {receptor_path}H.pdb -o {receptor_path}.pdbqt'], shell=True)
+    if flexible == True:
+        subprocess.run([f"pythonsh scripts/prepare_flexreceptor.py -r {receptor}.pdbqt -s {' '.join(sidechains)}"], shell=True)
 
 def prep_ligands():
     # Returns a list where each item is the path to a pickled and compressed text file containing multiple ligand strings
