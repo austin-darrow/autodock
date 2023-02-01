@@ -15,10 +15,10 @@ rank = comm.Get_rank()
 receptor='1fpu_receptor'
 flex_receptor=f'{receptor}_flex'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
-flexible = False
+flexible = True
 sidechains = ['THR315']
 docking_type = 'vina'
-ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC/100_sets'
+ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC'
 config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
@@ -81,7 +81,7 @@ def processing():
     if docking_type == 'vina':
         v = Vina(sf_name='vina', cpu=1, verbosity=0)
         if flexible == True:
-            v.set_receptor(f'{receptor_path/{receptor}.pdbqt, {receptor_path}/{flex_receptor}.pdbqt')
+            v.set_receptor(f'{receptor_path}/{receptor}.pdbqt', f'{receptor_path}/{flex_receptor}.pdbqt')
         else:
             v.set_receptor(f'{receptor_path}/{receptor}.pdbqt')
         uc = user_configs

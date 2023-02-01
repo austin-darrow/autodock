@@ -4,9 +4,9 @@ import pickle
 import blosc
 import copy
 
-MAX_LIGANDS_PER_SET = 100
-path = '../../Enamine-PC/'
-write_path = f'./Enamine-PC/{MAX_LIGANDS_PER_SET}_sets/'
+MAX_LIGANDS_PER_SET = 10
+path = '../../Enamine-PC/1000'
+write_path = f'./Enamine-PC/'
 ligands = {}
 
 def split_dict_to_multiple(input_dict, max_limit=200):
