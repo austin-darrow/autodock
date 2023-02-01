@@ -11,13 +11,14 @@ from os.path import basename
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
- 
+
 receptor='1fpu_receptor'
-receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors/{receptor}'
+flex_receptor=f'{receptor}_flex'
+receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
+flexible = False
 sidechains = ['THR315']
 docking_type = 'vina'
-flexible = False
-ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC/50_sets'
+ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC/100_sets'
 config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
@@ -33,14 +34,15 @@ def prep_maps():
     if docking_type == 'ad4':
         if exists(f'{receptor}.gpf'):
             subprocess.run([f"rm {receptor}.gpf"], shell=True)
-        subprocess.run([f"python3 ./scripts/write-gpf.py --box {config_path} {receptor_path}.pdbqt"], shell=True)
+        subprocess.run([f"python3 ./scripts/write-gpf.py --box {config_path} {receptor_path}/{receptor}.pdbqt"], shell=True)
         subprocess.run([f"./scripts/autogrid4 -p {receptor}.gpf"], shell=True)
 
 def prep_receptor():
-    if exists(f'{receptor_path}H.pdb'):
-        subprocess.run([f'./scripts/prepare_receptor -r {receptor_path}H.pdb -o {receptor_path}.pdbqt'], shell=True)
+    if exists(f'{receptor_path}/{receptor}H.pdb'):
+        subprocess.run([f'./scripts/prepare_receptor -r {receptor_path}/{receptor}H.pdb -o {receptor_path}/{receptor}.pdbqt'], shell=True)
     if flexible == True:
-        subprocess.run([f"pythonsh scripts/prepare_flexreceptor.py -r {receptor}.pdbqt -s {' '.join(sidechains)}"], shell=True)
+        subprocess.run([f"./scripts/pythonsh ./scripts/prepare_flexreceptor.py -g {receptor}.pdbqt -r {receptor_path}/{receptor}.pdbqt -s {'_'.join(sidechains)}"], shell=True)
+        subprocess.run([f"mv *receptor* {receptor_path}"], shell=True)
 
 def prep_ligands():
     # Returns a list where each item is the path to a pickled and compressed text file containing multiple ligand strings
@@ -78,7 +80,10 @@ def processing():
     # Initialize Vina or AD4 configurations
     if docking_type == 'vina':
         v = Vina(sf_name='vina', cpu=1, verbosity=0)
-        v.set_receptor(f'{receptor_path}.pdbqt')
+        if flexible == True:
+            v.set_receptor(f'{receptor_path/{receptor}.pdbqt, {receptor_path}/{flex_receptor}.pdbqt')
+        else:
+            v.set_receptor(f'{receptor_path}/{receptor}.pdbqt')
         uc = user_configs
         v.compute_vina_maps(center=[float(uc['center_x']), float(uc['center_y']), float(uc['center_z'])], \
                             box_size=[float(uc['size_x']), float(uc['size_y']), float(uc['size_z'])])
