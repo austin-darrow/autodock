@@ -13,7 +13,7 @@ __autodock__
 │  ├── __maps__--affinity maps for all possible ligand atoms for the given receptor  
 │  └── __pdbqt__--contains all output\_ligand.pdbqt files  
 └── __scripts__  
-   ├── __autogrid4__--ADFRSuite tool that generates affinity maps  
+&nbsp;&nbsp;&nbsp;&nbsp;   ├── __autogrid4__--ADFRSuite tool that generates affinity maps  
    ├── __ligand_pickler.py__--a script that was used to pickle, compress, and combine the ligand libraries  
    ├── __prepare_flexreceptor.py__--prepares rigid and flexible parts of the receptor for flexible docking  
    ├── __prepare_receptor__--converts a .pdb file into a .pdbqt file  
