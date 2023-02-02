@@ -6,19 +6,20 @@ import os
 import blosc
 from os.path import exists
 from os.path import basename
+from sys import argv
 
 # Setup
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-receptor='1iep_receptor'
+receptor='1fpu_receptor'
 flex_receptor=f'{receptor}_flex'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
 flexible = False
 sidechains = ['THR315']
 docking_type = 'vina'
-ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC-Compressed'
+ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC'
 config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
@@ -57,8 +58,8 @@ def run_docking(ligands, v):
         ligand = ligands[filename]
         v.set_ligand_from_string(ligand)
         v.dock()
-        v.write_poses(f'./output/{docking_type}/output_{filename}', n_poses=1, overwrite=True)
-        subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' ./output/{docking_type}/output_{filename} \
+        v.write_poses(f'./output/pdbqt/output_{filename}', n_poses=1, overwrite=True)
+        subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' ./output/pdbqt/output_{filename} \
                         | awk '{{print $4}}' >> results_{rank}.txt; echo {filename} \
                         >> results_{rank}.txt"], shell=True)
 
