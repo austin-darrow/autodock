@@ -24,15 +24,16 @@ __autodock__
 
 └── __scripts__
 
-    ├── __autogrid4__--ADFRSuite tool that generates affinity maps
+\   ├── __autogrid4__--ADFRSuite tool that generates affinity maps
 
-    ├── __ligand_pickler.py__--a script that was used to pickle, compress, and combine the ligand libraries
+\   ├── __ligand_pickler.py__--a script that was used to pickle, compress, and combine the ligand libraries
 
-    ├── __prepare_flexreceptor.py__--prepares rigid and flexible parts of the receptor for flexible docking
+\   ├── __prepare_flexreceptor.py__--prepares rigid and flexible parts of the receptor for flexible docking
 
-    ├── __prepare_receptor__--converts a .pdb file into a .pdbqt file
+\   ├── __prepare_receptor__--converts a .pdb file into a .pdbqt file
 
-    ├── __pythonsh__--Python shell script that runs prepare_flexreceptor.py
+\   ├── __pythonsh__--Python shell script that runs prepare\_flexreceptor.py
 
-    └── __write-gpf.py__--given a receptor, generates a .gpf file used by autogrid4 to write affinity maps
+\   └── __write-gpf.py__--given a receptor, generates a .gpf file used by autogrid4 to write affinity maps
+
 
