@@ -1,6 +1,7 @@
 This application runs AutoDock Vina virtual screening using the user's protein receptor and a selected ligand library on the Texas Advanced Computing Center (TACC) Lonestar6 supercomputer. Utilizing Python's mpi4py library, the application allows the user to submit batch jobs that dock up to thousands of molecules in parallel.
 
-##Understanding the filesystem:##
+ Understanding the filesystem:
+-------------------------
 
 __autodock__  
 |── __autodock.py__--the main script that runs AutoDock Vina  
