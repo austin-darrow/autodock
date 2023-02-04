@@ -1,10 +1,11 @@
 misc/AutoDock-Vina
-output/vina/*
-output/ad4/*
+output/pdbqt/*
+output/top_results/*
 output/maps/*
-output/processed_results.txt
 old
 Makefile
 results*
+*map*
 merged.txt
 benchmarks.txt
+/scripts/Enamine-PC

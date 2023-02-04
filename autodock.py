@@ -16,18 +16,24 @@ rank = comm.Get_rank()
 
 
 # Assign user inputs
-receptor='1fpu_receptor'
+receptor='1iep_receptor'
 flex_receptor=f'{receptor}_flex'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
 flexible = False
 sidechains = ['THR315']
 docking_type = 'vina'
 ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC'
+ligand_library = '/work/09252/adarrow/ls6/autodock/input/compressed'
 config_path = './configs/config.config'
 user_configs = {'center_x': '15.190', 'center_y': '53.903', \
                 'center_z': '16.917', 'size_x': '20.0', \
                 'size_y': '20.0', 'size_z': '20.0'}
+number_of_outputs = 5
 
+# Internal variables
+cpus = 0
+verbosity = 0
+poses = 1
 
 def prep_config():
 # Write user inputted configurations (grid center and box size) to a config file for AutoDock Vina to use
@@ -64,14 +70,17 @@ def prep_ligands():
     return ligand_paths
 
 
-def run_docking(ligands, v):
+def run_docking(ligands, v, directory):
     # Runs AutoDock on each ligand in the given set; outputs a .pdbqt file showing the pose and all scores; appends the ligand name (filename) and it's best pose/score to a temporary results file
+    output_directory = f'./output/pdbqt/{rank}{directory}'
+    if not exists(output_directory):
+        os.makedirs(output_directory)
     for index, filename in enumerate(ligands):
         ligand = ligands[filename]
         v.set_ligand_from_string(ligand)
         v.dock()
-        v.write_poses(f'./output/pdbqt/output_{filename}', n_poses=1, overwrite=True)
-        subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' ./output/pdbqt/output_{filename} \
+        v.write_poses(f'{output_directory}/output_{filename}', n_poses=poses, overwrite=True)
+        subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' {output_directory}/output_{filename} \
                         | awk '{{print $4}}' >> results_{rank}.txt; echo {filename} \
                         >> results_{rank}.txt"], shell=True)
 
@@ -100,7 +109,7 @@ def processing():
     # Initialize docking configurations
     # Note: Internal benchmarks showed that on a given node with 128 cores, setting ibrun -np to 32 and, below, setting CPU=4 granted the fastest docking. Verbosity set to 0 to increase speeds, as stdout cannot be captured from Vina's Python module.
     if docking_type == 'vina':
-        v = Vina(sf_name='vina', cpu=4, verbosity=0)
+        v = Vina(sf_name='vina', cpu=cpus, verbosity=verbosity)
         if flexible == True:
             v.set_receptor(f'{receptor_path}/{receptor}.pdbqt', f'{receptor_path}/{flex_receptor}.pdbqt')
         else:
@@ -109,10 +118,12 @@ def processing():
         v.compute_vina_maps(center=[float(uc['center_x']), float(uc['center_y']), float(uc['center_z'])], \
                             box_size=[float(uc['size_x']), float(uc['size_y']), float(uc['size_z'])])
     elif docking_type == 'ad4':
-        v = Vina(sf_name='ad4', cpu=4, verbosity=0)
+        v = Vina(sf_name='ad4', cpu=cpus, verbosity=verbosity)
         v.load_maps(map_prefix_filename = receptor)
         
     # Ask rank 0 for ligands and dock until rank 0 says done
+    count = 1
+    directory = 1
     while True:
         comm.send(rank,dest=0) # Ask rank 0 for another set of ligands
         ligand_set_path = comm.recv(source=0) # Wait for a response
@@ -120,7 +131,11 @@ def processing():
             comm.send('message received--proceed to post-processing',dest=0)
             break
         ligands = unpickle_and_decompress(ligand_set_path)
-        run_docking(ligands, v)
+        run_docking(ligands, v, directory)
+        count += 1
+        if count == 100:
+            count = 1
+            directory += 1
 
 
 
@@ -128,7 +143,7 @@ def sort():
     # Cats all results files into one, arranges each line to read: (ligand, top score), then sorts by score so that highest scoring ligands are on top; prints these sorted results are written to processed_results.txt; finally cleans up the directory
     subprocess.run(["cat results* >> results_merged.txt"], shell=True)
     INPUTFILE = 'results_merged.txt'
-    OUTPUTFILE = './output/processed_results.txt'
+    OUTPUTFILE = './output/top_results/processed_results.txt'
     
     result = []
 
@@ -141,7 +156,33 @@ def sort():
     with open(OUTPUTFILE, 'w') as data:
         data.writelines(sorted(result, key=lambda x: float(x.split()[1])))
     
-    subprocess.run(["rm results*; mv *map* *.gpf ./output/maps"], shell=True)
+
+def isolate_output():
+    # Copies the user-specified top n ligand output files to a single directory
+    top_ligand_filenames = []
+    
+    with open('./output/top_results/processed_results.txt', 'r') as results:
+        for index, line in enumerate(results):
+            if index == (number_of_outputs): 
+                break
+            top_ligand_filenames.append(line.split()[0])
+
+    for dirpath, dirnames, filenames in os.walk('./output/pdbqt'):
+        for top_filename in top_ligand_filenames:
+            for filename in filenames:
+                if filename == f'output_{top_filename}':
+                    subprocess.run([f'mv {dirpath}/{filename} ./output/top_results'], shell=True)
+    subprocess.run([f'tar -czf top_results.tar.gz ./output/top_results'], shell=True)
+
+
+def reset():
+    # Reset directory by removing all created files from this job
+    for dirpath, dirnames, filenames in os.walk('.'):
+        for filename in filenames:
+            if filename.endswith(('.pdbqt', '.map', '.gpf', '.config', '.txt', '.fld', '.xyz')): 
+                subprocess.run([f'rm {dirpath}/{filename}'], shell=True)
+    subprocess.run(['rm -r ./output/pdbqt/*'], shell=True)
+
 
 def main():
     if rank == 0:
@@ -163,6 +204,9 @@ def main():
 
         # Post-Processing
         sort()
+        isolate_output()
+        reset()
+
     else: # All ranks besides rank 0
         comm.recv(source=0) # Wait for rank 0 to finish pre-processing
         comm.send(rank, dest=0)
