@@ -31,7 +31,7 @@ user_configs = {'center_x': '15.190', 'center_y': '53.903', \
 number_of_outputs = 5
 
 # Internal variables
-cpus = 0
+cpus = 4
 verbosity = 0
 poses = 1
 
@@ -189,7 +189,7 @@ def main():
         # Pre-Processing
         ligands = pre_processing()
         # Let other ranks know pre-processing is finished; they can now ask for work
-        for i in range(size):
+        for i in range(1,size):
             comm.sendrecv('pre-processing finished; ask for work', dest=i)
 
         # Until all ligands have been docked, send more work to worker ranks
@@ -198,7 +198,7 @@ def main():
             comm.send(ligands.pop(), dest=source)
 
         # When all ligands have been sent, let worker ranks know they can stop
-        for i in range(size):
+        for i in range(1,size):
             comm.send('no more ligands', dest=i)
             comm.recv(source=i)
 

@@ -4,11 +4,9 @@ import pickle
 import blosc
 import copy
 
-MAX_LIGANDS_PER_SET = 1
+MAX_LIGANDS_PER_SET = 100
 path = '../../Enamine-PC/1'
-write_path = f'./Enamine-PC-Compressed/'
-path = '/work/09252/adarrow/ls6/autodock/input/ligands'
-write_path = '/work/09252/adarrow/ls6/autodock/input/compressed/'
+write_path = f'./Enamine-PC/'
 ligands = {}
 
 
