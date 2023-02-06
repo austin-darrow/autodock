@@ -35,7 +35,6 @@ size_z = float(box[2])
 
 receptor=args.receptor
 flex_receptor=f'{receptor}_flex'
-receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
 if docking == 'basic':
   flexible = False
 else:
@@ -68,17 +67,16 @@ def prep_maps():
     if docking_type == 'ad4':
         if exists(f'{receptor}.gpf'):
             subprocess.run([f"rm {receptor}.gpf"], shell=True)
-        subprocess.run([f"python3 ./scripts/write-gpf.py --box {config_path} {receptor_path}/{receptor}.pdbqt"], shell=True)
+        subprocess.run([f"python3 ./scripts/write-gpf.py --box {config_path} {receptor}.pdbqt"], shell=True)
         subprocess.run([f"./scripts/autogrid4 -p {receptor}.gpf"], shell=True)
 
 
 def prep_receptor():
 # Converts a PDB receptor to a PDBQT, if needed. If the user has specified flexible docking, also prepares the rigid receptor and user-chosen flexible sidechains.
-    if exists(f'{receptor_path}/{receptor}H.pdb'):
-        subprocess.run([f'./scripts/prepare_receptor -r {receptor_path}/{receptor}H.pdb -o {receptor_path}/{receptor}.pdbqt'], shell=True)
+    if exists(f'{receptor}H.pdb'):
+        subprocess.run([f'./scripts/prepare_receptor -r {receptor}H.pdb -o {receptor}.pdbqt'], shell=True)
     if flexible == True:
-        subprocess.run([f"./scripts/pythonsh ./scripts/prepare_flexreceptor.py -g {receptor}.pdbqt -r {receptor_path}/{receptor}.pdbqt -s {'_'.join(sidechains)}"], shell=True)
-        subprocess.run([f"mv *receptor* {receptor_path}"], shell=True)
+        subprocess.run([f"./scripts/pythonsh ./scripts/prepare_flexreceptor.py -g {receptor}.pdbqt -r {receptor}.pdbqt -s {'_'.join(sidechains)}"], shell=True)
 
 
 def prep_ligands():
@@ -131,9 +129,9 @@ def processing():
     if docking_type == 'vina':
         v = Vina(sf_name='vina', cpu=cpus, verbosity=verbosity)
         if flexible == True:
-            v.set_receptor(f'{receptor_path}/{receptor}.pdbqt', f'{receptor_path}/{flex_receptor}.pdbqt')
+            v.set_receptor(f'{receptor}.pdbqt', f'{flex_receptor}.pdbqt')
         else:
-            v.set_receptor(f'{receptor_path}/{receptor}.pdbqt')
+            v.set_receptor(f'{receptor}.pdbqt')
         uc = user_configs
         v.compute_vina_maps(center=[float(uc['center_x']), float(uc['center_y']), float(uc['center_z'])], \
                             box_size=[float(uc['size_x']), float(uc['size_y']), float(uc['size_z'])])
@@ -168,10 +166,12 @@ def sort():
     result = []
 
     with open(INPUTFILE) as data:
-        while line := data.readline():
+        line = data.readline()
+        while line:
             filename = basename(line.split()[-1])
             v = data.readline().split()[0]
             result.append(f'{v} {filename}\n')
+            line = data.readline()
 
     with open(OUTPUTFILE, 'w') as data:
         data.writelines(sorted(result, key=lambda x: float(x.split()[1])))
