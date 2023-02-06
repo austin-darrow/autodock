@@ -78,25 +78,50 @@ verbosity = 0
 poses = 1
 
 def check_user_configs():
-    assert (size_x <= 30 and size_y <= 30 and size_z <=30), \
-           "box size is outside the bounds (30)" 
-    assert (full_receptor.endswith('.pdb') or full_receptor.endswith('.pdbqt')), \
-           "Please provide a .pdb or .pdbqt file"
-
-def check_user_sidechains():
     # Check that user-inputted flexible sidechains are found within the .pdbqt file
-    if flexible == False:
-        return
+    for size in [size_x, size_y, size_z]:
+        if not (size <= 30 and size >= 1):
+           subprocess.run(["echo 'box size is outside the bounds (1-30)' \
+                           >> error.txt"], shell=True)
+           comm.Abort()
+    if not (full_receptor.endswith('.pdb') or not full_receptor.endswith('.pdbqt')):
+        subprocess.run(["echo 'Please provide a .pdb or .pdbqt file' \
+                        >> error.txt"], shell=True)
+        comm.Abort()
+          
     all_sidechains = []
+    xbounds = []
+    ybounds = []
+    zbounds = []
     with open(f'{receptor}.pdbqt', 'r') as r:
         line = r.readline()
         while line:
             line = r.readline()
             if line.startswith('ATOM'):
-                 all_sidechains.append(line.split()[3] + line.split()[5])
-    for sidechain in sidechains:
-        assert sidechain in all_sidechains, \
-               "Please provide valid flexible sidechain names (e.g. THR315)"
+                xbounds.append(float(line.split()[6]))
+                ybounds.append(float(line.split()[7]))
+                zbounds.append(float(line.split()[8]))
+                all_sidechains.append(line.split()[3] + line.split()[5])
+    if flexible == True:
+        for sidechain in sidechains:
+            if not sidechain in all_sidechains:
+                subprocess.run(["echo 'Please provide valid flexible sidechain \
+                                names, separated by spaces (e.g. THR315 GLU268)' \
+                                >> error.txt"], shell=True)
+                comm.Abort()
+                  
+    if not (min(xbounds)) <= center_x <= (max(xbounds)):
+        subprocess.run(["echo 'Center x coordinate is not within bounds' \
+                        >> error.txt"], shell=True)
+        comm.Abort()
+    if not (min(ybounds)) <= center_y <= (max(ybounds)):
+        subprocess.run(["echo 'Center y coordinate is not within bounds' \
+                        >> error.txt"], shell=True)
+        comm.Abort()
+    if not (min(zbounds)) <= center_z <= (max(zbounds)):
+        subprocess.run(["echo 'Center z coordinate is not within bounds' \
+                        >> error.txt"], shell=True)
+        comm.Abort()
 
 
 def prep_config():
@@ -175,11 +200,10 @@ def unpickle_and_decompress(path_to_file):
 def pre_processing():
     # Helper function to reduce clutter in main()
     subprocess.run(['mkdir -p configs output/pdbqt output/top_results'], shell=True)
-    check_user_configs()
     prep_config()
     prep_receptor()
     prep_maps()
-    check_user_sidechains()
+    check_user_configs()
 
 
 def processing():
