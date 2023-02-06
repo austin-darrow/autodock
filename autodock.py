@@ -116,7 +116,7 @@ def prep_maps():
             subprocess.run([f"rm {receptor}.gpf"], shell=True)
         subprocess.run([f"python3 ./scripts/write-gpf.py --box {config_path} \
                         {receptor}.pdbqt"], shell=True)
-        subprocess.run([f"./scripts/autogrid4 -p {receptor}.gpf"], shell=True)
+        subprocess.run([f"autogrid4 -p {receptor}.gpf"], shell=True)
 
 
 def prep_receptor():
@@ -124,10 +124,10 @@ def prep_receptor():
     #   flexible docking, also prepares the rigid receptor and user-chosen 
     #   flexible sidechains.
     if exists(f'{receptor}.pdb'):
-        subprocess.run([f'./scripts/prepare_receptor -r {receptor}.pdb \
+        subprocess.run([f'prepare_receptor -r {receptor}.pdb \
                         -o {receptor}.pdbqt'], shell=True)
     if flexible == True:
-        subprocess.run([f"./scripts/pythonsh ./scripts/prepare_flexreceptor.py \
+        subprocess.run([f"pythonsh ./scripts/prepare_flexreceptor.py \
                         -g {receptor}.pdbqt -r {receptor}.pdbqt \
                         -s {'_'.join(sidechains)}"], shell=True)
 
