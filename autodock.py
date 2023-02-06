@@ -14,20 +14,40 @@ comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
-
 # Assign user inputs
-receptor='1iep_receptor'
+parser = argparse.ArgumentParser(description ='vina commands')
+parser.add_argument('-r','--receptor',type=str, help='Receptor for processing')
+parser.add_argument('-c','--center',type=str,required=True,help='center position')
+parser.add_argument('-s','--size',type=str,required=True,help='box size')
+parser.add_argument('-m','--module',type=str,required=True,help='module for docking')
+parser.add_argument('-d','--docking',type=str,required=True,help='basic or flexible docking')
+
+args = parser.parse_args()
+docking = args.docking
+center = (args.center).split(",")
+center_x = float(center[0])
+center_y = float(center[1])
+center_z = float(center[2])
+box = (args.size).split(",")
+size_x = float(box[0])
+size_y = float(box[1])
+size_z = float(box[2])
+
+receptor=args.receptor
 flex_receptor=f'{receptor}_flex'
 receptor_path = f'/scratch/09252/adarrow/autodock/input/receptors'
-flexible = False
+if docking == 'basic':
+  flexible = False
+else:
+  flexible = True
 sidechains = ['THR315']
-docking_type = 'vina'
-ligand_library = '/scratch/09252/adarrow/autodock/scripts/Enamine-PC'
-ligand_library = '/work/09252/adarrow/ls6/autodock/input/compressed'
+docking_type = args.module
+ligand_library = '/scratch/02875/docking/test/Enamine-PC/Enamine-PC/test_sets/test'
 config_path = './configs/config.config'
-user_configs = {'center_x': '15.190', 'center_y': '53.903', \
-                'center_z': '16.917', 'size_x': '20.0', \
-                'size_y': '20.0', 'size_z': '20.0'}
+user_configs = {'center_x': center_x, 'center_y': center_y, \
+        'center_z': center_z, 'size_x': size_x, \
+        'size_y': size_y, 'size_z': size_z}
+
 number_of_outputs = 5
 
 # Internal variables
