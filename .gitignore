@@ -1,13 +1,8 @@
-misc/AutoDock-Vina
-output/pdbqt/*
-output/top_results/*
-output/maps/*
-old
+./output
+./configs
 Makefile
 results*
 *map*
 merged.txt
-benchmarks.txt
-/scripts/Enamine-PC
 *.pdb
 *.pdbqt

@@ -70,12 +70,14 @@ user_configs = {'center_x': center_x,
                 'size_y': size_y,
                 'size_z': size_z}
 
-number_of_outputs = args.number
+
+number_of_outputs = args.number if args.number <= 1000 else 1000
 
 # Internal variables
 cpus = 4
 verbosity = 0
 poses = 1
+exhaustiveness = 8
 
 def check_user_configs():
     # Check that user-inputted flexible sidechains are found within the .pdbqt file
@@ -177,7 +179,7 @@ def run_docking(ligands, v, directory):
     for index, filename in enumerate(ligands):
         ligand = ligands[filename]
         v.set_ligand_from_string(ligand)
-        v.dock()
+        v.dock(exhaustiveness=exhaustiveness)
         v.write_poses(f'{output_directory}/output_{filename}', \
                       n_poses=poses, overwrite=True)
         subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' \
@@ -199,7 +201,7 @@ def unpickle_and_decompress(path_to_file):
 
 def pre_processing():
     # Helper function to reduce clutter in main()
-    subprocess.run(['mkdir -p configs output/pdbqt output/top_results'], shell=True)
+    subprocess.run(['mkdir -p configs output/pdbqt output/results/ligands'], shell=True)
     prep_config()
     prep_receptor()
     prep_maps()
@@ -253,10 +255,10 @@ def sort():
     # Cats all results files into one, arranges each line to read: 
     #   (ligand, top score), then sorts by score so that highest scoring 
     #   ligands are on top; prints these sorted results are written to 
-    #   processed_results.txt; finally cleans up the directory
+    #   sorted_scores.txt; finally cleans up the directory
     subprocess.run(["cat results* >> results_merged.txt"], shell=True)
     INPUTFILE = 'results_merged.txt'
-    OUTPUTFILE = './output/top_results/processed_results.txt'
+    OUTPUTFILE = './output/results/sorted_scores.txt'
     
     result = []
 
@@ -269,17 +271,16 @@ def sort():
             line = data.readline()
 
     with open(OUTPUTFILE, 'w') as data:
-        data.writelines(sorted(result, key=lambda x: float(x.split()[1])))
+        data.writelines(sorted(result[:number_of_outputs], \
+                        key=lambda x: float(x.split()[1])))
     
 
 def isolate_output():
     # Copies the user-specified top n ligand output files to a single directory
     top_ligand_filenames = []
     
-    with open('./output/top_results/processed_results.txt', 'r') as results:
+    with open('./output/results/sorted_scores.txt', 'r') as results:
         for index, line in enumerate(results):
-            if index == (number_of_outputs): 
-                break
             top_ligand_filenames.append(line.split()[0])
 
     for dirpath, dirnames, filenames in os.walk('./output/pdbqt'):
@@ -287,8 +288,16 @@ def isolate_output():
             for filename in filenames:
                 if filename == f'output_{top_filename}':
                     subprocess.run([f'mv {dirpath}/{filename} \
-                                    ./output/top_results'], shell=True)
-    subprocess.run([f'tar -czf top_results.tar.gz ./output/top_results'],
+                                    ./output/results/ligands'], \
+                                    shell=True)
+    
+    with open('./output/results/combined_docked_ligands', 'w+') as combined:
+        for dirpath, dirnames, filenames in os.walk('./output/results/ligands'):
+            for filename in filenames:
+                lines = open(f'{dirpath}/{filename}', 'r').read()
+                combined.write(str(lines))
+    
+    subprocess.run([f'tar -czf results.tar.gz ./output/results'],
                    shell=True)
 
 

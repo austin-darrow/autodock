@@ -5,8 +5,8 @@ import blosc
 import copy
 
 MAX_LIGANDS_PER_SET = 100
-path = '../../Enamine-PC/1'
-write_path = f'./Enamine-PC/'
+path = '/scratch/02875/docking/test/ZINC-in-trials'
+write_path = '/scratch/02875/docking/test/ZINC-in-trials-compressed/'
 ligands = {}
 
 
