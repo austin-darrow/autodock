@@ -86,7 +86,7 @@ def check_user_configs():
            subprocess.run(["echo 'box size is outside the bounds (1-30)' \
                            >> error.txt"], shell=True)
            comm.Abort()
-    if not (full_receptor.endswith('.pdb') or not full_receptor.endswith('.pdbqt')):
+    if not (full_receptor.endswith('.pdb') or full_receptor.endswith('.pdbqt')):
         subprocess.run(["echo 'Please provide a .pdb or .pdbqt file' \
                         >> error.txt"], shell=True)
         comm.Abort()
@@ -108,7 +108,7 @@ def check_user_configs():
         for sidechain in sidechains:
             if not sidechain in all_sidechains:
                 subprocess.run(["echo 'Please provide valid flexible sidechain \
-                                names, separated by spaces (e.g. THR315 GLU268)' \
+                                names, separated by underscores (e.g. THR315_GLU268)' \
                                 >> error.txt"], shell=True)
                 comm.Abort()
                   
@@ -160,7 +160,7 @@ def prep_receptor():
                             -s {'_'.join(sidechains)}"], shell=True)
     except:
         subprocess.run([f"echo 'error on rank {rank}: error prepping receptor' \
-                        >> errors.txt"])
+                        >> errors.txt"], shell=True)
         comm.Abort()
 
 def prep_ligands():
@@ -249,19 +249,19 @@ def processing():
                 break
         except:
             subprocess.run([f"echo 'error on rank {rank}: communication error \
-                            with rank 0' >> errors.txt"])
+                            with rank 0' >> errors.txt"], shell=True)
         try:
             ligands = unpickle_and_decompress(ligand_set_path)
         except:
             subprocess.run([f"echo 'error on rank {rank}: could not \
                             unpickle/decompress {ligand_set_path}' \
-                            >> errors.txt"])
+                            >> errors.txt"], shell=True)
         try:
             run_docking(ligands, v, directory)
         except:
             subprocess.run([f"echo 'error on rank {rank}: docking error with \
                             ligand set {ligand_set_path}, ligands {ligands}' \
-                            >> errors.txt"])
+                            >> errors.txt"], shell=True)
         count += 1
         if count == 100:
             count = 1
