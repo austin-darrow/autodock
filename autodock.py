@@ -161,7 +161,7 @@ def prep_receptor():
     except:
         subprocess.run([f"echo 'error on rank {rank}: error prepping receptor' \
                         >> errors.txt"])
-
+        comm.Abort()
 
 def prep_ligands():
     # Returns a list where each item is the path to a pickled and compressed 
