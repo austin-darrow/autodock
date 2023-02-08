@@ -1,10 +1,10 @@
 # Allow over-ride
-if [ -z "${CONTAINER_IMAGE}" ]
-then
-    version=$(cat ./_util/VERSION)
-    CONTAINER_IMAGE="index.docker.io/library/ubuntu:bionic"
-fi
-. lib/container_exec.sh
+#if [ -z "${CONTAINER_IMAGE}" ]
+#then
+#    version=$(cat ./_util/VERSION)
+#    CONTAINER_IMAGE="index.docker.io/library/ubuntu:bionic"
+#fi
+#. lib/container_exec.sh
 
 # Write an excution command below that will run a script or binary inside the 
 # requested container, assuming that the current working directory is 
@@ -26,6 +26,13 @@ fi
 
 # set +x
 
-COMMAND="python3"
-PARAMS="module_vina.py"
-MV2_ENABLE_AFFINITY=0 ibrun -np 1 container_exec ${CONTAINER_IMAGE} ${COMMAND} ${PARAMS}
+singularity pull vina_1.2.3.0.sif docker://austindarrow/autodock_vina:1.2.3.0
+flex=${flexible_sidechains}
+if
+     [ -z "${flexible_sidechains}" ]
+then
+     flex='Empty'
+fi
+    
+MV2_ENABLE_AFFINITY=0 ibrun -np 32 singularity exec vina_1.2.3.0.sif python3 autodock.py -r ${receptor} -c "${center_x},${center_y},${center_z}" -s "${size_x},${size_y},${size_z}" -m ${forcefield} -d ${docking} -ll ${library} -n ${top_n_scores} -f $flex
+
