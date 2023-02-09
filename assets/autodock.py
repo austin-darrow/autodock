@@ -63,6 +63,9 @@ elif docking == 'flexible':
     sidechains = (args.sidechains).split('_')
 docking_type = args.module
 ligand_library = args.ligand_library
+library_short = ligand_library.split('/')[5]
+tasks = int(os.environ['SLURM_NTASKS'])
+nodes = int(os.environ['SLURM_NNODES'])
 config_path = './configs/config.config'
 user_configs = {'center_x': center_x,
                 'center_y': center_y,
@@ -73,25 +76,37 @@ user_configs = {'center_x': center_x,
 
 
 number_of_outputs = args.number if args.number <= 1000 else 1000
-
 # Internal variables
+# tasks should be nodes * 128 / cpus
+if library_short in ['Enamine-PC', 'Enamine-AC', 'ZINC-in-trials']:
+    expected_nodes = 1
+    expected_tasks = 32
+elif library_short == 'Enamine-HTSC':
+    expected_nodes = 10
+    expected_tasks = 320
+elif library_short == 'ZINC-fragments':
+    expected_nodes = 5
+    expected_tasks = 160
 cpus = 4
-verbosity = 0
-poses = 1
+verbosity = 0 # Prints vina docking progress to stdout if set to 1 (normal) or 2 (verbose)
+poses = 1 # If set to 1, only saves the best pose/score to the output ligand .pdbqt file
 exhaustiveness = 8
 
 def check_user_configs():
-    # Check that user-inputted flexible sidechains are found within the .pdbqt file
+    # User inputted box size must be within bounds specified below
     for size in [size_x, size_y, size_z]:
         if not (size <= 30 and size >= 1):
            subprocess.run(["echo 'box size is outside the bounds (1-30)' \
                            >> error.txt"], shell=True)
            comm.Abort()
+    # User must input a file ending in .pdb or .pdbqt
     if not (full_receptor.endswith('.pdb') or full_receptor.endswith('.pdbqt')):
         subprocess.run(["echo 'Please provide a .pdb or .pdbqt file' \
                         >> error.txt"], shell=True)
         comm.Abort()
           
+    # User inputted grid center must be within the receptor's min/max bounds
+    # User inputted sidechains must be found within the .pdbqt receptor file
     all_sidechains = []
     xbounds = []
     ybounds = []
@@ -125,6 +140,18 @@ def check_user_configs():
         subprocess.run(["echo 'Center z coordinate is not within bounds' \
                         >> error.txt"], shell=True)
         comm.Abort()
+    
+    # User inputted #Nodes and #Tasks must match our internal values (specified above) exactly
+    if not (tasks == expected_tasks) or not (nodes == expected_nodes):
+        subprocess.run([f"echo 'Incorrect values for #Nodes and/or #ProcessorsPerNode.\n \
+                        Please review input guidelines before submitting a job.\n \
+                        Current #Nodes={nodes}\n \
+                        Current#Tasks={tasks}\n \
+                        Expected #Nodes for {library_short}={expected_nodes}\n \
+                        Expected #Tasks for {library_short}={expected_tasks}' \
+                        >> error.txt"], shell=True)
+        comm.Abort()
+
 
 
 def prep_config():
@@ -313,7 +340,7 @@ def isolate_output():
                                     ./output/results/ligands'], \
                                     shell=True)
     
-    with open('./output/results/combined_docked_ligands', 'w+') as combined:
+    with open('./output/results/combined_docked_ligands.pdbqt', 'w+') as combined:
         for dirpath, dirnames, filenames in os.walk('./output/results/ligands'):
             for filename in filenames:
                 lines = open(f'{dirpath}/{filename}', 'r').read()
@@ -359,6 +386,8 @@ def main():
         end_time = time.time()
         total_time = end_time - start_time
         subprocess.run([f"echo {total_time} > runtime.txt"], shell=True)
+        subprocess.run([f"echo ' Nodes: {os.environ['SLURM_NNODES']}' >> runtime.txt"], shell=True)
+        subprocess.run([f"echo ' Library: {library_short}' >> runtime.txt"], shell=True)
 
     else: # All ranks besides rank 0
         comm.recv(source=0) # Wait for rank 0 to finish pre-processing

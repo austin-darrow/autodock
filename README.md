@@ -7,7 +7,7 @@ Note: Computer docking and virtual screening are inexact, but potentially very v
  Running the application:
 -----------------------
 
-To run the application, the user must submit a job using the [TACC API (TAPIS) Portal system](). The following inputs are allowed:
+To run the application, the user must submit a job using the [TACC API (TAPIS) UTRC Portal system](https://utrc.tacc.utexas.edu/). The following inputs are allowed:
 - __Protein Receptor__: The user _must_ upload a .pdb- or .pdbqt-formatted protein receptor file
 - __Grid Center__: The user _may_ specify X-Y-Z coordinates; default is x: 15.190, y: 53.903, z: 16.917
 - __Box Size__: The user _may_ specify X-Y-Z size limits; default is 20-20-20

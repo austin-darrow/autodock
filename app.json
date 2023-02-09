@@ -13,17 +13,17 @@
     "load tacc-apptainer"
   ],
   "ontology": [],
-  "parallelism": "SERIAL",
+  "parallelism": "PARALLEL",
   "tags": [],
   "templatePath": "runner.sh",
   "testPath": "tester.sh",
   "version": "{{ app.version }}",
-  "defaultMaxRunTime": "00:00:00",
+  "defaultMaxRunTime": "02:00:00",
   "inputs": [    
    {
     "id": "receptor",
     "value": {
-      "default": "",
+      "default": "agave://cloud.corral.work.adarrow/ls6/autodock/input/receptors/1fpu_receptorH.pdb",
       "visible": true,
       "required": true
     },
@@ -47,6 +47,7 @@
     {
       "id": "center_x",
       "value": {
+        "default": 16,
         "type": "number",
         "visible": true,
         "required": true,
@@ -59,7 +60,7 @@
     {  
       "id": "center_y",
       "value": {
-        "default": 0,
+        "default": 52,
         "type": "number",
         "visible": true,
         "required": true,
@@ -72,7 +73,7 @@
     {
       "id": "center_z",
       "value": {
-        "default": 0,
+        "default": 18,
         "type": "number",
         "visible": true,   
         "required": true,
@@ -166,16 +167,16 @@
           {"/scratch/02875/docking/test/Enamine-PC-compressed/1": "Enamine-PC"},
           {"/scratch/02875/docking/test/ZINC-in-trials-compressed/1": "ZINC-in-trials"},
           {"/scratch/02875/docking/test/ZINC-fragments/100_sets": "ZINC-fragments"},
-	  {"/scratch/02875/docking/test/bechmarks/ZINC-in-trials/5000_set": "ZINC-in-trials 5k"},
-	  {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/10000_set": "ZINC-in-trials 10k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-PC/5000_set": "PC 5k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-PC/10000_set": "PC 10k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-AC/5000_set": "AC 5k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-AC/10000_set": "AC 10k"},
-	  {"/scratch/02875/docking/test/bechmarks/ZINC-fragments/5000_set": "ZINC-fragments 5k"},
-	  {"/scratch/02875/docking/test/bechmarks/ZINC-fragments/10000_set": "ZINC-fragments 10k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-HTSC/5000_set": "HTSC 5k"},
-	  {"/scratch/02875/docking/test/bechmarks/Enamine-HTSC/10000_set": "HTSC 10k"}
+	        {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/5000_set": "ZINC-in-trials 5k"},
+          {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/10000_set": "ZINC-in-trials 10k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-PC/5000_set": "PC 5k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-PC/10000_set": "PC 10k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-AC/5000_set": "AC 5k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-AC/10000_set": "AC 10k"},
+          {"/scratch/02875/docking/test/benchmarks/ZINC-fragments/5000_set": "ZINC-fragments 5k"},
+          {"/scratch/02875/docking/test/benchmarks/ZINC-fragments/10000_set": "ZINC-fragments 10k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-HTSC/5000_set": "HTSC 5k"},
+          {"/scratch/02875/docking/test/benchmarks/Enamine-HTSC/10000_set": "HTSC 10k"}
         ],
         "type": "enumeration",
         "visible": true,
@@ -203,7 +204,7 @@
     {
       "id": "flexible_sidechains",
       "value": {
-        "default": "",
+        "default": "THR315",
         "type": "string",
         "visible": true,
         "required": false,
