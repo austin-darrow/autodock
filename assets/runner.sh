@@ -1,10 +1,10 @@
-# Allow over-ride
-#if [ -z "${CONTAINER_IMAGE}" ]
-#then
-#    version=$(cat ./_util/VERSION)
-#    CONTAINER_IMAGE="index.docker.io/library/ubuntu:bionic"
-#fi
-#. lib/container_exec.sh
+ Allow over-ride
+if [ -z "${CONTAINER_IMAGE}" ]
+then
+    version=$(cat ./_util/VERSION)
+    CONTAINER_IMAGE="index.docker.io/library/ubuntu:bionic"
+fi
+. lib/container_exec.sh
 
 # Write an excution command below that will run a script or binary inside the 
 # requested container, assuming that the current working directory is 
