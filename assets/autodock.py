@@ -78,13 +78,13 @@ user_configs = {'center_x': center_x,
 number_of_outputs = args.number if args.number <= 1000 else 1000
 # Internal variables
 # tasks should be nodes * 128 / cpus
-if library_short in ['Enamine-PC', 'Enamine-AC', 'ZINC-in-trials']:
+if library_short in ['Enamine-PC', 'ZINC-fragments', 'ZINC-in-trials']:
     expected_nodes = 1
     expected_tasks = 32
 elif library_short == 'Enamine-HTSC':
     expected_nodes = 1
     expected_tasks = 32
-elif library_short == 'ZINC-fragments':
+elif library_short == 'Enamine-AC':
     expected_nodes = 1
     expected_tasks = 32
 cpus = 4
