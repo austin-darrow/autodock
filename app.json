@@ -5,10 +5,10 @@
   "executionType": "HPC",
   "deploymentPath": "{{ username }}/apps/{{ app.name }}-{{ app.version }}",
   "deploymentSystem": "tacc.work.adarrow",
-  "helpURI": "https://drugdiscovery.tacc.utexas.edu/#/faq",
+  "helpURI": "https://drugdiscovery.tacc.utexas.edu/#/documentation",
   "label": "Autodock Vina 1.2.3.0",
   "shortDescription": "{{ app.description }}",
-  "longDescription": "This app provides a graphical interface for conducting a screen for identifying small molecules that bind to your target protein using the Autodock software. This app is intended to provide easy access to researchers wishing to perform small numbers of docking or virtual screening experiments.",
+  "longDescription": "This application provides a graphical interface for conducting molecular docking experiments for identifying small molecules that bind to your target protein using Autodock Vina docking software. This application is intended to provide easy access to researchers wishing to perform small numbers of docking or virtual screening experiments. Visit the linked documentation page for a tutorial on running a job here.",
   "modules": [
     "load tacc-apptainer"
   ],
@@ -28,8 +28,8 @@
       "required": true
     },
     "details": {
-      "label": "Receptor Input File",
-      "description": "Please provide a receptor formatted in a .pdb or .pdbqt file"
+      "label": "Protein Receptor Input File",
+      "description": "Please provide a protein receptor (.pdb or .pdbqt format)"
     },
     "semantics": {}
   }],
@@ -47,7 +47,7 @@
     {
       "id": "center_x",
       "value": {
-        "default": 16,
+        "default": 0,
         "type": "number",
         "visible": true,
         "required": true,
@@ -60,7 +60,7 @@
     {  
       "id": "center_y",
       "value": {
-        "default": 52,
+        "default": 0,
         "type": "number",
         "visible": true,
         "required": true,
@@ -73,7 +73,7 @@
     {
       "id": "center_z",
       "value": {
-        "default": 18,
+        "default": 0,
         "type": "number",
         "visible": true,   
         "required": true,
@@ -86,7 +86,7 @@
     {
       "id": "size_x",
       "value": {
-        "default": 30,    
+        "default": 20,    
         "type": "number",
         "visible": true,
         "required": true,
@@ -99,7 +99,7 @@
     {
       "id": "size_y",
       "value": {
-        "default": 30,
+        "default": 20,
         "type": "number",
         "visible": true,
         "required": true,
@@ -112,7 +112,7 @@
     {  
       "id": "size_z",
       "value": {
-        "default": 30,
+        "default": 20,
         "type": "number",
         "visible": true,
         "required": true,
@@ -199,13 +199,13 @@
       },
       "details": {
         "label": "Returned Scores",
-        "description": "Please provide the number of best docking scores to be returned"
+        "description": "Please provide the number of top scoring docked ligands to be returned (max: 1000)"
       }
     },
     {
       "id": "flexible_sidechains",
       "value": {
-        "default": "THR315",
+        "default": "",
         "type": "string",
         "visible": true,
         "required": false,
