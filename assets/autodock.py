@@ -8,6 +8,8 @@ from os.path import exists
 from os.path import basename # Used in the sorting function
 import argparse # To accept user inputs as command line arguments
 import time
+import logging
+import shutil
 
 """
 Setup base MPI declarations
@@ -19,6 +21,12 @@ more work. It sends work for as long as there are ligand files left. Then rank
 0 waits to hear from all ranks that they have finished processing, then 
 proceeds to do the post-processing work. 
 """
+
+logging.basicConfig(level=logging.DEBUG,
+format='%(asctime)s %(levelname)s %(message)s',
+      filename='autodock.log',
+      filemode='w')
+
 COMM = MPI.COMM_WORLD
 SIZE = COMM.Get_size()
 RANK = COMM.Get_rank()
@@ -115,10 +123,16 @@ def main():
         reset()
         end_time = time.time()
         total_time = end_time - start_time
-        subprocess.run([f"echo {total_time} > runtime.txt"], shell=True)
-        subprocess.run([f"echo ' Nodes: {NODES}' >> runtime.txt"], shell=True)
-        subprocess.run([f"echo ' Tasks: {TASKS}' >> runtime.txt"], shell=True)
-        subprocess.run([f"echo ' Library: {LIBRARY_SHORT}' >> runtime.txt"], shell=True)
+
+        logging.info(f"{total_time}")
+        logging.info(f"Nodes: {NODES}")
+        logging.info(f"Tasks: {TASKS}")
+        logging.info(f"Library: {LIBRARY_SHORT}")
+
+        #subprocess.run([f"echo {total_time} > runtime.txt"], shell=True)
+        #subprocess.run([f"echo ' Nodes: {NODES}' >> runtime.txt"], shell=True)
+        #subprocess.run([f"echo ' Tasks: {TASKS}' >> runtime.txt"], shell=True)
+        #subprocess.run([f"echo ' Library: {LIBRARY_SHORT}' >> runtime.txt"], shell=True)
 
     else: # All ranks besides rank 0
         COMM.recv(source=0) # Wait for rank 0 to finish pre-processing
@@ -131,13 +145,11 @@ def check_user_configs():
     # User inputted box size must be within bounds specified below
     for size in [SIZE_X, SIZE_Y, SIZE_Z]:
         if not (size <= 30 and size >= 1):
-           subprocess.run(["echo 'box size is outside the bounds (1-30)' \
-                           >> error.txt"], shell=True)
-           COMM.Abort()
+            logging.error("box size is outside the bounds (1-30)")
+            COMM.Abort()
     # User must input a file ending in .pdb or .pdbqt
     if not (FULL_RECEPTOR.endswith('.pdb') or FULL_RECEPTOR.endswith('.pdbqt')):
-        subprocess.run(["echo 'Please provide a .pdb or .pdbqt file' \
-                        >> error.txt"], shell=True)
+        logging.error("Please provide a .pdb or .pdbqt file")
         COMM.Abort()
           
     # User inputted grid center must be within the receptor's min/max bounds
@@ -158,39 +170,33 @@ def check_user_configs():
     if FLEXIBLE == True:
         for sidechain in SIDECHAINS:
             if not sidechain in all_sidechains:
-                subprocess.run(["echo 'Please provide valid flexible sidechain \
-                                names, separated by underscores (e.g. THR315_GLU268)' \
-                                >> error.txt"], shell=True)
+                logging.error("Please provide valid flexible sidechain \
+                                names, separated by underscores (e.g. THR315_GLU268)")
                 COMM.Abort()
                   
     if not (min(xbounds)) <= CENTER_X <= (max(xbounds)):
-        subprocess.run(["echo 'Center x coordinate is not within bounds' \
-                        >> error.txt"], shell=True)
+        logging.error("Center x coordinate is not within bounds")
         COMM.Abort()
     if not (min(ybounds)) <= CENTER_Y <= (max(ybounds)):
-        subprocess.run(["echo 'Center y coordinate is not within bounds' \
-                        >> error.txt"], shell=True)
+        logging.error("Center y coordinate is not within bounds")
         COMM.Abort()
     if not (min(zbounds)) <= CENTER_Z <= (max(zbounds)):
-        subprocess.run(["echo 'Center z coordinate is not within bounds' \
-                        >> error.txt"], shell=True)
+        logging.error("Center z coordinate is not within bounds")
         COMM.Abort()
     
     # Maximum of 6 sidechains
     if len(SIDECHAINS) > MAX_SIDECHAINS:
-        subprocess.run(["echo 'Too many sidechains specified (max: 6)' \
-                        >> error.txt"], shell=True)
+        logging.error("Too many sidechains specified (max: 6)")
         COMM.Abort()
     
     # User inputted #Nodes and #Tasks must match our internal values (specified above) exactly
     if not (TASKS == EXPECTED_TASKS) or not (NODES == EXPECTED_NODES):
-        subprocess.run([f"echo 'Incorrect values for #Nodes and/or #ProcessorsPerNode.\n \
+        logging.error(f'Incorrect values for #Nodes and/or #ProcessorsPerNode.\n \
                         Please review input guidelines before submitting a job.\n \
-                        Current #Nodes={NODES}\n \
-                        Current#Tasks={TASKS}\n \
-                        Expected #Nodes for {LIBRARY_SHORT}={EXPECTED_NODES}\n \
-                        Expected #Tasks for {LIBRARY_SHORT}={EXPECTED_TASKS}' \
-                        >> error.txt"], shell=True)
+                        Current #Nodes={nodes}\n \
+                        Current#Tasks={tasks}\n \
+                        Expected #Nodes for {library_short}={expected_nodes}\n \
+                        Expected #Tasks for {library_short}={expected_tasks}')
         COMM.Abort()
 
 
@@ -207,7 +213,8 @@ def prep_maps():
     #   Generates maps for all possible ligand atom types for a given receptor
     if args.module == 'ad4':
         if exists(f'{RECEPTOR}.gpf'):
-            subprocess.run([f"rm {RECEPTOR}.gpf"], shell=True)
+            os.remove(f'{receptor}.gpf')
+            #subprocess.run([f"rm {RECEPTOR}.gpf"], shell=True)
         subprocess.run([f"python3 ./scripts/write-gpf.py --box {'./configs/config.config'} \
                         {RECEPTOR}.pdbqt"], shell=True)
         subprocess.run([f"autogrid4 -p {RECEPTOR}.gpf"], shell=True)
@@ -220,18 +227,18 @@ def prep_receptor():
     if FULL_RECEPTOR.endswith('.pdb'):
         try:
             subprocess.run([f'prepare_receptor -r {RECEPTOR}.pdb'], shell=True)
-        except:
-            subprocess.run([f"echo 'error on rank {RANK}: error prepping receptor' \
-                            >> errors.txt"], shell=True)
+        except Exception as e:
+            logging.error(f"error on rank {RANK}: error prepping receptor")
+            logging.debug(e)
             COMM.Abort()
     if FLEXIBLE == True:
         try:
             subprocess.run([f"pythonsh ./scripts/prepare_flexreceptor.py \
                 -g {RECEPTOR}.pdbqt -r {RECEPTOR}.pdbqt \
                 -s {'_'.join(SIDECHAINS)}"], shell=True)
-        except:
-            subprocess.run([f"echo 'error on rank {RANK}: error prepping flex \
-                            receptor >> errors.txt"], shell=True)
+        except Exception as e:
+            logging.error(f"error on rank {RANK}: error prepping flex receptor")
+            logging.debug(e)
             COMM.Abort()
     
 
@@ -277,7 +284,10 @@ def unpickle_and_decompress(path_to_file):
 
 def pre_processing():
     # Helper function to reduce clutter in main()
-    subprocess.run(['mkdir -p configs output/pdbqt output/results/ligands'], shell=True)
+    #subprocess.run(['mkdir -p configs output/pdbqt output/results/ligands'], shell=True)
+    os.makedirs('configs')
+    os.makedirs('output/pdbqt')
+    os.makedirs('output/results/ligands')
     prep_config()
     prep_receptor()
     prep_maps()
@@ -315,16 +325,17 @@ def processing():
             break
         try:
             ligands = unpickle_and_decompress(ligand_set_path)
-        except:
-            subprocess.run([f"echo 'error on rank {RANK}: could not \
-                            unpickle/decompress {ligand_set_path}' \
-                            >> errors.txt"], shell=True)
+        except Exception as e:
+            logging.error(f'error on rank {RANK}: could not \
+                            unpickle/decompress {ligand_set_path}')
+            logging.debug(e)
         try:
             run_docking(ligands, v, directory)
-        except:
-            subprocess.run([f"echo 'error on rank {RANK}: docking error with \
-                            ligand set {ligand_set_path}, ligands {ligands}' \
-                            >> errors.txt"], shell=True)
+        except Exception as e:
+            logging.error(f'error on rank {RANK}: docking error with \
+                            ligand set {ligand_set_path}, ligands {ligands}')
+            logging.debug(e)
+
         count += 1
         if count == 100:
             count = 1
@@ -386,9 +397,12 @@ def reset():
     # Reset directory by removing all created files from this job
     for dirpath, _, filenames in os.walk('.'):
         for filename in filenames:
-            if filename.endswith(('.map', '.txt', '.gpf', '.fld', '.xyz')): 
-                subprocess.run([f'rm {dirpath}/{filename}'], shell=True)
-    subprocess.run(['rm -r ./output/ ./configs'], shell=True)
+            if filename.endswith(('.map', '.txt', '.gpf', '.fld', '.xyz')):
+                os.remove(f'{dirpath}/{filename}') 
+                #subprocess.run([f'rm {dirpath}/{filename}'], shell=True)
+    shutil.rmtree('./output')
+    shutil.rmtree('./configs')
+    #subprocess.run(['rm -r ./output/ ./configs'], shell=True)
         
 
 
