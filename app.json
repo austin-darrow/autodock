@@ -18,18 +18,20 @@
   "templatePath": "runner.sh",
   "testPath": "tester.sh",
   "version": "{{ app.version }}",
+  "defaultProcessorsPerNode": 32,
+  "defaultMemoryPerNode": "96GB",
   "defaultMaxRunTime": "02:00:00",
   "inputs": [    
    {
     "id": "receptor",
     "value": {
-      "default": "agave://cloud.corral.work.adarrow/ls6/autodock/input/receptors/1fpu_receptorH.pdb",
+      "default": "",
       "visible": true,
       "required": true
     },
     "details": {
       "label": "Protein Receptor Input File",
-      "description": "Please provide a protein receptor (.pdb or .pdbqt format)"
+      "description": "Upload a protein receptor (.pdb or .pdbqt format)."
     },
     "semantics": {}
   }],
@@ -44,131 +46,18 @@
         "order": 1000
       }
     },
-    {
-      "id": "center_x",
-      "value": {
-        "default": 0,
-        "type": "number",
-        "visible": true,
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Center X-Coordinate"
-      }
-    },
-    {  
-      "id": "center_y",
-      "value": {
-        "default": 0,
-        "type": "number",
-        "visible": true,
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Center Y-Coordinate"
-      }
-    },
-    {
-      "id": "center_z",
-      "value": {
-        "default": 0,
-        "type": "number",
-        "visible": true,   
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Center Z-Coordinate"
-      }
-    },
-    {
-      "id": "size_x",
-      "value": {
-        "default": 20,    
-        "type": "number",
-        "visible": true,
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Box X-Coordinate"
-      }
-    },
-    {
-      "id": "size_y",
-      "value": {
-        "default": 20,
-        "type": "number",
-        "visible": true,
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Box Y-Coordinate"
-      }
-    },
-    {  
-      "id": "size_z",
-      "value": {
-        "default": 20,
-        "type": "number",
-        "visible": true,
-        "required": true,
-        "order": 1000   
-      },
-      "details": {
-        "label": "Box Z-Coordinate"
-      }
-    },
-    {  
-      "id": "forcefield",
-      "value": {
- 	      "default": "vina",
-        "enumValues":[
-  	      {"vina": "Vina"},
-  	      {"ad4": "Autodock4"}
-        ],
-        "type": "enumeration",
-        "visible": true,
-        "required": true,
-        "order": 1000   
-      },
-      "details": {
-        "label": "Scoring Method"
-      }
-    },
-    {
-      "id": "docking",
-      "value": {
-        "default": "rigid",
-        "enumValues":[
-          {"rigid": "Rigid"},
-          {"flexible": "Flexible"}
-        ],
-        "type": "enumeration",
-        "visible": true, 
-        "required": true,
-        "order": 1000
-      },
-      "details": {
-        "label": "Docking"
-      }
-    },
     {  
       "id": "library",
       "value": {
         "default": "/scratch/02875/docking/test/Enamine-PC/Enamine-PC/test_sets/test",
         "enumValues":[
-	  {"/scratch/09252/adarrow/autodock/scripts/test": "newtest"},
           {"/scratch/02875/docking/test/Enamine-PC/Enamine-PC/test_sets/test": "test"},
-	  {"/scratch/02875/docking/test/Enamine-AC/100_sets": "Enamine-AC"},
+	        {"/scratch/02875/docking/test/Enamine-AC/100_sets": "Enamine-AC"},
           {"/scratch/02875/docking/test/Enamine-HTSC/100_sets": "Enamine-HTSC"},
           {"/scratch/02875/docking/test/Enamine-PC-compressed": "Enamine-PC"},
           {"/scratch/02875/docking/test/ZINC-in-trials-compressed": "ZINC-in-trials"},
           {"/scratch/02875/docking/test/ZINC-fragments-compressed2": "ZINC-fragments"},
-	  {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/5000_set": "ZINC-in-trials 5k"},
+	        {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/5000_set": "ZINC-in-trials 5k"},
           {"/scratch/02875/docking/test/benchmarks/ZINC-in-trials/10000_set": "ZINC-in-trials 10k"},
           {"/scratch/02875/docking/test/benchmarks/Enamine-PC/5000_set": "PC 5k"},
           {"/scratch/02875/docking/test/benchmarks/Enamine-PC/10000_set": "PC 10k"},
@@ -185,7 +74,142 @@
         "order": 1000
       },      
       "details": {
-        "label": "Library"
+        "label": "Ligand Library",
+        "description": "Select the ligand database to search against."
+      }
+    },
+    {
+      "id": "center_x",
+      "value": {
+        "default": 0,
+        "type": "number",
+        "visible": true,
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Center X-Coordinate",
+        "description": "Enter an x-coordinate to designate the center of the search volume. Typically, this coordinate is the center of the protein's active site."
+      }
+    },
+    {  
+      "id": "center_y",
+      "value": {
+        "default": 0,
+        "type": "number",
+        "visible": true,
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Center Y-Coordinate",
+        "description": "Enter a y-coordinate to designate the center of the search volume."
+      }
+    },
+    {
+      "id": "center_z",
+      "value": {
+        "default": 0,
+        "type": "number",
+        "visible": true,   
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Center Z-Coordinate",
+        "description": "Enter a z-coordinate to designate the center of the search volume."
+      }
+    },
+    {
+      "id": "size_x",
+      "value": {
+        "default": 20,    
+        "type": "number",
+        "visible": true,
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Grid Box X-Value",
+        "description": "Specify, in Angstroms, the size of the box around the active site to search within. Too large a value can lead to inaccurate binding positions outside of the active site. The maximum size is 30 x 30 x 30 Angstroms."
+      }
+    },
+    {
+      "id": "size_y",
+      "value": {
+        "default": 20,
+        "type": "number",
+        "visible": true,
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Grid Box Y-Value",
+        "description": "Specify, in Angstroms, the size of the box around the active site to search within."
+      }
+    },
+    {  
+      "id": "size_z",
+      "value": {
+        "default": 20,
+        "type": "number",
+        "visible": true,
+        "required": true,
+        "order": 1000   
+      },
+      "details": {
+        "label": "Grid Box Z-Value",
+        "description": "Specify, in Angstroms, the size of the box around the active site to search within."
+      }
+    },
+    {  
+      "id": "forcefield",
+      "value": {
+ 	      "default": "vina",
+        "enumValues":[
+  	      {"vina": "Vina"},
+  	      {"ad4": "Autodock4"}
+        ],
+        "type": "enumeration",
+        "visible": false,
+        "required": true,
+        "order": 1000   
+      },
+      "details": {
+        "label": "Scoring Method",
+        "description": "Select whether molecular docking is run using the AutoDock Vina forcefield or the AutoDock4 forcefield."
+      }
+    },
+    {
+      "id": "docking",
+      "value": {
+        "default": "rigid",
+        "enumValues":[
+          {"rigid": "Rigid"},
+          {"flexible": "Flexible"}
+        ],
+        "type": "enumeration",
+        "visible": false, 
+        "required": true,
+        "order": 1000
+      },
+      "details": {
+        "label": "Docking Type",
+        "description": "Select whether to use rigid or flexible docking methods. If flexible is chosen, please provide the flexible sidechain names below."
+      }
+    },
+    {
+      "id": "flexible_sidechains",
+      "value": {
+        "default": "",
+        "type": "string",
+        "visible": false,
+        "required": false,
+        "order": 1000   
+      },
+      "details": {
+        "label": "Flexible Sidechains",
+        "description": "If using flexible docking, provide the sidechain names with an underscore separating each (e.g. ASP363_SER385_TYR393)."
       }
     },
     {
@@ -199,21 +223,7 @@
       },
       "details": {
         "label": "Returned Scores",
-        "description": "Please provide the number of top scoring docked ligands to be returned (max: 1000)"
-      }
-    },
-    {
-      "id": "flexible_sidechains",
-      "value": {
-        "default": "",
-        "type": "string",
-        "visible": true,
-        "required": false,
-        "order": 1000   
-      },
-      "details": {
-        "label": "Flexible Sidechains",
-        "description": "Input sidechain names, separated by underscores (e.g. THR315_GLU217)"
+        "description": "Provide the number of top scoring docked ligands to be returned (max: 1000)."
       }
     }
   ],
