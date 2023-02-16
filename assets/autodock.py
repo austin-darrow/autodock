@@ -1,7 +1,7 @@
 from vina import Vina
 from mpi4py import MPI
 import subprocess
-import pickle # For unpickling ligand files
+import pickle # For unpickling pickled ligand files
 import os
 import blosc # For decompressing compressed ligand files
 from os.path import exists
@@ -10,6 +10,12 @@ import argparse # To accept user inputs as command line arguments
 import time
 import logging
 import shutil
+
+# Initialize logging
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='autodock.log',
+                    filemode='w')
 
 """
 Setup base MPI declarations
@@ -21,12 +27,6 @@ more work. It sends work for as long as there are ligand files left. Then rank
 0 waits to hear from all ranks that they have finished processing, then 
 proceeds to do the post-processing work. 
 """
-
-logging.basicConfig(level=logging.DEBUG,
-format='%(asctime)s %(levelname)s %(message)s',
-      filename='autodock.log',
-      filemode='w')
-
 COMM = MPI.COMM_WORLD
 SIZE = COMM.Get_size()
 RANK = COMM.Get_rank()
@@ -124,15 +124,10 @@ def main():
         end_time = time.time()
         total_time = end_time - start_time
 
-        logging.info(f"{total_time}")
-        logging.info(f"Nodes: {NODES}")
-        logging.info(f"Tasks: {TASKS}")
-        logging.info(f"Library: {LIBRARY_SHORT}")
-
-        #subprocess.run([f"echo {total_time} > runtime.txt"], shell=True)
-        #subprocess.run([f"echo ' Nodes: {NODES}' >> runtime.txt"], shell=True)
-        #subprocess.run([f"echo ' Tasks: {TASKS}' >> runtime.txt"], shell=True)
-        #subprocess.run([f"echo ' Library: {LIBRARY_SHORT}' >> runtime.txt"], shell=True)
+        logging.info(f"Script runtime = {total_time}.")
+        logging.info(f"Nodes: {NODES}.")
+        logging.info(f"Tasks: {TASKS}.")
+        logging.info(f"Library: {LIBRARY_SHORT}.")
 
     else: # All ranks besides rank 0
         COMM.recv(source=0) # Wait for rank 0 to finish pre-processing
@@ -145,11 +140,11 @@ def check_user_configs():
     # User inputted box size must be within bounds specified below
     for size in [SIZE_X, SIZE_Y, SIZE_Z]:
         if not (size <= 30 and size >= 1):
-            logging.error("box size is outside the bounds (1-30)")
+            logging.error("box size is outside the bounds (1-30).")
             COMM.Abort()
     # User must input a file ending in .pdb or .pdbqt
     if not (FULL_RECEPTOR.endswith('.pdb') or FULL_RECEPTOR.endswith('.pdbqt')):
-        logging.error("Please provide a .pdb or .pdbqt file")
+        logging.error("Please provide a .pdb or .pdbqt file.")
         COMM.Abort()
           
     # User inputted grid center must be within the receptor's min/max bounds
@@ -171,32 +166,32 @@ def check_user_configs():
         for sidechain in SIDECHAINS:
             if not sidechain in all_sidechains:
                 logging.error("Please provide valid flexible sidechain \
-                                names, separated by underscores (e.g. THR315_GLU268)")
+                              names, separated by underscores (e.g. THR315_GLU268).")
                 COMM.Abort()
                   
     if not (min(xbounds)) <= CENTER_X <= (max(xbounds)):
-        logging.error("Center x coordinate is not within bounds")
+        logging.error("Center x coordinate is not within bounds.")
         COMM.Abort()
     if not (min(ybounds)) <= CENTER_Y <= (max(ybounds)):
-        logging.error("Center y coordinate is not within bounds")
+        logging.error("Center y coordinate is not within bounds.")
         COMM.Abort()
     if not (min(zbounds)) <= CENTER_Z <= (max(zbounds)):
-        logging.error("Center z coordinate is not within bounds")
+        logging.error("Center z coordinate is not within bounds.")
         COMM.Abort()
     
     # Maximum of 6 sidechains
     if len(SIDECHAINS) > MAX_SIDECHAINS:
-        logging.error("Too many sidechains specified (max: 6)")
+        logging.error("Too many sidechains specified (max: 6).")
         COMM.Abort()
     
     # User inputted #Nodes and #Tasks must match our internal values (specified above) exactly
     if not (TASKS == EXPECTED_TASKS) or not (NODES == EXPECTED_NODES):
         logging.error(f'Incorrect values for #Nodes and/or #ProcessorsPerNode.\n \
                         Please review input guidelines before submitting a job.\n \
-                        Current #Nodes={nodes}\n \
-                        Current#Tasks={tasks}\n \
-                        Expected #Nodes for {library_short}={expected_nodes}\n \
-                        Expected #Tasks for {library_short}={expected_tasks}')
+                        Current #Nodes={NODES}.\n \
+                        Current#Tasks={TASKS}.\n \
+                        Expected #Nodes for {LIBRARY_SHORT}={EXPECTED_NODES}.\n \
+                        Expected #Tasks for {LIBRARY_SHORT}={EXPECTED_TASKS}.')
         COMM.Abort()
 
 
@@ -213,8 +208,7 @@ def prep_maps():
     #   Generates maps for all possible ligand atom types for a given receptor
     if args.module == 'ad4':
         if exists(f'{RECEPTOR}.gpf'):
-            os.remove(f'{receptor}.gpf')
-            #subprocess.run([f"rm {RECEPTOR}.gpf"], shell=True)
+            os.remove(f'{RECEPTOR}.gpf')
         subprocess.run([f"python3 ./scripts/write-gpf.py --box {'./configs/config.config'} \
                         {RECEPTOR}.pdbqt"], shell=True)
         subprocess.run([f"autogrid4 -p {RECEPTOR}.gpf"], shell=True)
@@ -259,7 +253,7 @@ def run_docking(ligands, v, directory):
     output_directory = f'./output/pdbqt/{RANK}{directory}'
     if not exists(output_directory):
         os.makedirs(output_directory)
-    for index, filename in enumerate(ligands):
+    for _, filename in enumerate(ligands):
         ligand = ligands[filename]
         v.set_ligand_from_string(ligand)
         v.dock(exhaustiveness=EXHAUSTIVENESS)
@@ -284,7 +278,6 @@ def unpickle_and_decompress(path_to_file):
 
 def pre_processing():
     # Helper function to reduce clutter in main()
-    #subprocess.run(['mkdir -p configs output/pdbqt output/results/ligands'], shell=True)
     os.makedirs('configs')
     os.makedirs('output/pdbqt')
     os.makedirs('output/results/ligands')
@@ -326,21 +319,20 @@ def processing():
         try:
             ligands = unpickle_and_decompress(ligand_set_path)
         except Exception as e:
-            logging.error(f'error on rank {RANK}: could not \
-                            unpickle/decompress {ligand_set_path}')
+            logging.error(f'Error on rank {RANK}: could not \
+                            unpickle/decompress {ligand_set_path}.')
             logging.debug(e)
         try:
             run_docking(ligands, v, directory)
         except Exception as e:
-            logging.error(f'error on rank {RANK}: docking error with \
-                            ligand set {ligand_set_path}, ligands {ligands}')
+            logging.error(f'Error on rank {RANK}: docking error with \
+                            ligand set {ligand_set_path}, ligands {ligands}.')
             logging.debug(e)
 
         count += 1
         if count == 100:
             count = 1
             directory += 1
-
 
 
 def sort():
@@ -372,25 +364,23 @@ def isolate_output():
     top_ligand_filenames = []
     
     with open('./output/results/sorted_scores.txt', 'r') as results:
-        for index, line in enumerate(results):
+        for _, line in enumerate(results):
             top_ligand_filenames.append(line.split()[0])
 
     for dirpath, _, filenames in os.walk('./output/pdbqt'):
         for top_filename in top_ligand_filenames:
             for filename in filenames:
                 if filename == f'output_{top_filename}':
-                    subprocess.run([f'mv {dirpath}/{filename} \
-                                    ./output/results/ligands'], \
-                                    shell=True)
+                    shutil.move(f'{dirpath}/{filename}', './output/results/ligands')
     
-    with open('./output/results/combined_docked_ligands.pdbqt', 'w+') as combined:
-        for dirpath, _, filenames in os.walk('./output/results/ligands'):
-            for filename in filenames:
-                lines = open(f'{dirpath}/{filename}', 'r').read()
-                combined.write(str(lines))
+    combined = open('./output/results/combined_docked_ligands.pdbqt', 'w+')
+    while top_ligand_filenames:
+        with open(f'./output/results/ligands/output_{top_ligand_filenames.pop(0)}') as f:
+            lines = f.read()
+            combined.write(lines)
+    combined.close()
     
-    subprocess.run([f'tar -czf results.tar.gz ./output/results'],
-                   shell=True)
+    subprocess.run([f'tar -czf results.tar.gz ./output/results'], shell=True)
 
 
 def reset():
@@ -399,11 +389,12 @@ def reset():
         for filename in filenames:
             if filename.endswith(('.map', '.txt', '.gpf', '.fld', '.xyz')):
                 os.remove(f'{dirpath}/{filename}') 
-                #subprocess.run([f'rm {dirpath}/{filename}'], shell=True)
     shutil.rmtree('./output')
     shutil.rmtree('./configs')
-    #subprocess.run(['rm -r ./output/ ./configs'], shell=True)
         
 
-
-main()
+try:
+    main()
+except:
+    logging.error('Error on main().')
+    logging.debug(Exception)
