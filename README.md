@@ -20,7 +20,7 @@ To run the application, the user must submit a job using the [TACC API (TAPIS) U
  Output Visualization:
 ---------------------
 
-The user may also choose to visualize their resulting output file utilizing the [ChimeraX app](https://github.com/tiffanyhuff/ChimeraXApp) on the [Texas Advanced Computing Center (TACC)](https://www.tacc.utexas.edu/) [Lonestar6 supercomputer](https://www.tacc.utexas.edu/systems/lonestar6). To run the application, the user must submit a job using the [University of Texas Research Cyberinfrastructure (UTRC) system](https://utrc.tacc.utexas.edu/). A virtual DCV session will be initialized for the user, and a document titled 'ChimeraX_dcvserver.txt' will be created in the user's work folder with connection instructions. Once connected, the [University of California San Francisco (UCSF)](https://www.ucsf.edu/) [ChimeraX](https://www.cgl.ucsf.edu/chimerax/) software will begin running, and a Tapis jobs archive folder will be created on the desktop for the user's convenience. The user may then use the ChimeraX program to open the file containing the top scoring docked ligands.
+The user may also choose to visualize their resulting output file utilizing the [ChimeraX application](https://github.com/tiffanyhuff/ChimeraXApp) on the [Texas Advanced Computing Center (TACC)](https://www.tacc.utexas.edu/) [Lonestar6 supercomputer](https://www.tacc.utexas.edu/systems/lonestar6). To run the application, the user must submit a job using the [University of Texas Research Cyberinfrastructure (UTRC) system](https://utrc.tacc.utexas.edu/). A virtual DCV session will be initialized for the user, and a document titled 'ChimeraX_dcvserver.txt' will be created in the user's work folder with connection instructions. Once connected, the [University of California San Francisco (UCSF)](https://www.ucsf.edu/) [ChimeraX](https://www.cgl.ucsf.edu/chimerax/) software will begin running, and a Tapis jobs archive folder will be created on the desktop for the user's convenience. The user may then use the ChimeraX program to open the file containing the top scoring docked ligands.
 
  Docking Software:
 ---------------------
@@ -38,6 +38,6 @@ ChimeraX Software:
 
 Molecular graphics and analyses performed with UCSF ChimeraX, developed by the Resource for Biocomputing, Visualization, and Informatics at the University of California, San Francisco, with support from National Institutes of Health R01-GM129325 and the Office of Cyber Infrastructure and Computational Biology, National Institute of Allergy and Infectious Diseases.
 
-[UCSF ChimeraX: Structure visualization for researchers, educators, and developers.](https://pubmed.ncbi.nlm.nih.gov/32881101/) Pettersen EF, Goddard TD, Huang CC, Meng EC, Couch GS, Croll TI, Morris JH, Ferrin TE. Protein Sci. 2021 Jan;30(1):70-82.
+[UCSF ChimeraX: Structure visualization for researchers, educators, and developers. Pettersen EF, Goddard TD, Huang CC, Meng EC, Couch GS, Croll TI, Morris JH, Ferrin TE. Protein Sci. 2021 Jan;30(1):70-82.](https://pubmed.ncbi.nlm.nih.gov/32881101/)
 
-[UCSF ChimeraX: Meeting modern challenges in visualization and analysis.](https://pubmed.ncbi.nlm.nih.gov/28710774/) Goddard TD, Huang CC, Meng EC, Pettersen EF, Couch GS, Morris JH, Ferrin TE. Protein Sci. 2018 Jan;27(1):14-25.
+[UCSF ChimeraX: Meeting modern challenges in visualization and analysis. Goddard TD, Huang CC, Meng EC, Pettersen EF, Couch GS, Morris JH, Ferrin TE. Protein Sci. 2018 Jan;27(1):14-25.](https://pubmed.ncbi.nlm.nih.gov/28710774/)
