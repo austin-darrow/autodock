@@ -75,14 +75,14 @@ if DOCKING == 'rigid':
 elif DOCKING == 'flexible':
     FLEXIBLE = True
 SIDECHAINS = (args.sidechains).split('_')
-LIBRARY_SHORT = args.ligand_library.split('/')[6]
+LIBRARY_SHORT = args.ligand_library.split('/')[4]
 NUMBER_OF_OUTPUTS = args.number if args.number <= 1000 else 1000
 
 # Internal constants
 # tasks should be nodes * 128 / cpus
 TASKS = int(os.environ['SLURM_NTASKS']) # What the user chose on the web portal
 NODES = int(os.environ['SLURM_NNODES']) # What the user chose on the web portal
-if LIBRARY_SHORT in ['test', 'Enamine-PC', 'ZINC-fragments', 'ZINC-in-trials']:
+if LIBRARY_SHORT in ['Test-set', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
     EXPECTED_NODES = 1
     EXPECTED_TASKS = 32
 elif LIBRARY_SHORT == 'Enamine-HTSC':
