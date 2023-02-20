@@ -21,10 +21,10 @@ To run the application, the user must submit a job using the [TACC API (TAPIS) U
  Docking software:
 ---------------------
 
-[Autodock Vina](http://vina.scripps.edu/)\[1], written by Drs. O. Trott and A. Olson at the Scripps Institute is used to perform the actual docking. This open-source program has been made freely available by the authors.
+[Autodock Vina](http://vina.scripps.edu/), written by Drs. O. Trott and A. Olson at the Scripps Institute is used to perform the actual docking. This open-source program has been made freely available by the authors.
 
 [AutodockTools](http://autodock.scripps.edu/resources/adt/index_html/), written by Drs. G. Morris and A. Olson at the Scripps Institute is used to convert proteins and ligands to the format required by AutoDock Vina. This open-source program has been made freely available by the authors.
 
-[1] "AutoDock Vina: Improving the Speed and Accuracy of Docking with a New Scoring Function, Efficient Optimization and Multithreading", (2010) O. Trott and A. J. Olson, J. Comp. Chem. 31, 455-461.
+[J. Eberhardt, D. Santos-Martins, A. F. Tillack, and S. Forli. (2021). AutoDock Vina 1.2.0: New Docking Methods, Expanded Force Field, and Python Bindings. Journal of Chemical Information and Modeling.](https://pubs.acs.org/doi/10.1021/acs.jcim.1c00203)
 
-
+[O. Trott and A. J. Olson. (2010). AutoDock Vina: improving the speed and accuracy of docking with a new scoring function, efficient optimization, and multithreading. Journal of computational chemistry, 31(2), 455-461.](https://onlinelibrary.wiley.com/doi/10.1002/jcc.21334)
