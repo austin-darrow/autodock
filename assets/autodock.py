@@ -237,12 +237,14 @@ def prep_receptor():
     
 
 def prep_ligands():
-    # Returns a list where each item is the path to a pickled and compressed 
-    #   text file containing multiple ligand strings
+    # Returns a list where each item is the path to a pickled and compressed
+    #   text file containing multiple ligand strings, ignores files that are
+    #   not in .pkl or .dat format
     ligand_paths = []
     for dirpath, _, filenames in os.walk(args.ligand_library):
         for filename in filenames:
-            ligand_paths.append(f'{dirpath}/{filename}')
+            if filename.endswith('.pkl') or filename.endswith('.dat'):
+                ligand_paths.append(f'{dirpath}/{filename}')
     return ligand_paths
 
 
