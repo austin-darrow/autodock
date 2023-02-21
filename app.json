@@ -67,7 +67,7 @@
           {"/scratch/02875/docking/test/benchmarks/ZINC-fragments/10000_set": "ZINC-fragments 10k"},
           {"/scratch/02875/docking/test/benchmarks/Enamine-HTSC/5000_set": "HTSC 5k"},
           {"/scratch/02875/docking/test/benchmarks/Enamine-HTSC/10000_set": "HTSC 10k"},
-          {"/scratch/projects/docking/Test-set": "Test-set"},
+          {"/scratch/projects/docking/Test-set-compressed": "Test-set"},
           {"/scratch/projects/docking/Enamine-PC-compressed": "Enamine-PC"},
           {"/scratch/projects/docking/Enamine-AC-compressed": "Enamine-AC"},
           {"/scratch/projects/docking/Enamine-HTSC-compressed": "Enamine-HTSC"},
