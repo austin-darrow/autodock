@@ -20,7 +20,7 @@
   "version": "{{ app.version }}",
   "defaultProcessorsPerNode": 32,
   "defaultMemoryPerNode": "96GB",
-  "defaultMaxRunTime": "02:00:00",
+  "defaultMaxRunTime": "36:00:00",
   "inputs": [    
    {
     "id": "receptor",
