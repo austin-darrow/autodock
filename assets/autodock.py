@@ -80,17 +80,19 @@ NUMBER_OF_OUTPUTS = args.number if args.number <= 1000 else 1000
 
 # Internal constants
 # tasks should be nodes * 128 / cpus
+# These values were determined through internal benchmarks to allow an entire set to run
+# under 24 hours
 TASKS = int(os.environ['SLURM_NTASKS']) # What the user chose on the web portal
 NODES = int(os.environ['SLURM_NNODES']) # What the user chose on the web portal
 if LIBRARY_SHORT in ['Test-set', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
     EXPECTED_NODES = 1
     EXPECTED_TASKS = 32
 elif LIBRARY_SHORT == 'Enamine-HTSC':
-    EXPECTED_NODES = 1
-    EXPECTED_TASKS = 32
+    EXPECTED_NODES = 10
+    EXPECTED_TASKS = 320
 elif LIBRARY_SHORT == 'Enamine-AC':
-    EXPECTED_NODES = 1
-    EXPECTED_TASKS = 32
+    EXPECTED_NODES = 3
+    EXPECTED_TASKS = 96
 CPUS = 4
 VERBOSITY = 0 # Prints vina docking progress to stdout if set to 1 (normal) or 2 (verbose)
 POSES = 1 # If set to 1, only saves the best pose/score to the output ligand .pdbqt file
