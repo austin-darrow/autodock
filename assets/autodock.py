@@ -78,13 +78,16 @@ SIDECHAINS = (args.sidechains).split('_')
 LIBRARY_SHORT = args.ligand_library.split('/')[4]
 NUMBER_OF_OUTPUTS = args.number if args.number <= 1000 else 1000
 
+logging.debug(f"CENTER = {args.center}; BOX = {args.size}; DOCKING = {DOCKING}")
+logging.debug(f"LIGAND LIBRARY = {args.ligand_library}; LIBRARY SHORT = {LIBRARY_SHORT}")
+
 # Internal constants
 # tasks should be nodes * 128 / cpus
 # These values were determined through internal benchmarks to allow an entire set to run
 # under 24 hours
 TASKS = int(os.environ['SLURM_NTASKS']) # What the user chose on the web portal
 NODES = int(os.environ['SLURM_NNODES']) # What the user chose on the web portal
-if LIBRARY_SHORT in ['Test-set', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
+if LIBRARY_SHORT in ['Test-set-compressed', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
     EXPECTED_NODES = 1
     EXPECTED_TASKS = 32
 elif LIBRARY_SHORT == 'Enamine-HTSC':
@@ -100,8 +103,7 @@ EXHAUSTIVENESS = 8
 MAX_SIDECHAINS = 6
 
 logging.debug(f"TASKS = {TASKS}; NODES = {NODES}; EXPECTED TASKS = {EXPECTED_TASKS}; EXPECTED NODES = {EXPECTED_NODES}")
-logging.debug(f"CENTER = {args.center}; BOX = {args.size}; DOCKING = {DOCKING}")
-logging.debug(f"LIGAND LIBRARY = {args.ligand_library}; LIBRARY SHORT = {LIBRARY_SHORT}")
+
 
 def main():
     if RANK == 0:
