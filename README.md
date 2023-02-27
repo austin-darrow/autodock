@@ -15,9 +15,9 @@ To run the application, the user must submit a job using the [TACC API (TAPIS) U
 - __Run Time__: The user must enter maximum allowed runtime. See [documentation](drugdiscovery.tacc.utexas.edu/documentation) for assistance choosing an appropriate runtime
 - __Processors on Each Node__: The user must set this to 32
 - __Node Count__: The user must set this to a specific number based on the chosen ligand library:
-    -__Enamine-HTSC__: 10
-    -__Enamine-AC__: 3
-    -__All others__: 1
+    - __Enamine-HTSC__: 10
+    - __Enamine-AC__: 3
+    - __All others__: 1
 
 
  Output Visualization:
