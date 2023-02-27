@@ -75,22 +75,24 @@ if DOCKING == 'rigid':
 elif DOCKING == 'flexible':
     FLEXIBLE = True
 SIDECHAINS = (args.sidechains).split('_')
-LIBRARY_SHORT = args.ligand_library.split('/')[6]
+LIBRARY_SHORT = args.ligand_library.split('/')[4]
 NUMBER_OF_OUTPUTS = args.number if args.number <= 1000 else 1000
 
 # Internal constants
 # tasks should be nodes * 128 / cpus
+# These values were determined through internal benchmarks to allow an entire set to run
+# under 24 hours
 TASKS = int(os.environ['SLURM_NTASKS']) # What the user chose on the web portal
 NODES = int(os.environ['SLURM_NNODES']) # What the user chose on the web portal
-if LIBRARY_SHORT in ['test', 'Enamine-PC', 'ZINC-fragments', 'ZINC-in-trials']:
+if LIBRARY_SHORT in ['Test-set', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
     EXPECTED_NODES = 1
     EXPECTED_TASKS = 32
 elif LIBRARY_SHORT == 'Enamine-HTSC':
-    EXPECTED_NODES = 1
-    EXPECTED_TASKS = 32
+    EXPECTED_NODES = 10
+    EXPECTED_TASKS = 320
 elif LIBRARY_SHORT == 'Enamine-AC':
-    EXPECTED_NODES = 1
-    EXPECTED_TASKS = 32
+    EXPECTED_NODES = 3
+    EXPECTED_TASKS = 96
 CPUS = 4
 VERBOSITY = 0 # Prints vina docking progress to stdout if set to 1 (normal) or 2 (verbose)
 POSES = 1 # If set to 1, only saves the best pose/score to the output ligand .pdbqt file
@@ -237,12 +239,14 @@ def prep_receptor():
     
 
 def prep_ligands():
-    # Returns a list where each item is the path to a pickled and compressed 
-    #   text file containing multiple ligand strings
+    # Returns a list where each item is the path to a pickled and compressed
+    #   text file containing multiple ligand strings, ignores files that are
+    #   not in .pkl or .dat format
     ligand_paths = []
     for dirpath, _, filenames in os.walk(args.ligand_library):
         for filename in filenames:
-            ligand_paths.append(f'{dirpath}/{filename}')
+            if filename.endswith('.pkl') or filename.endswith('.dat'):
+                ligand_paths.append(f'{dirpath}/{filename}')
     return ligand_paths
 
 
