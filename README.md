@@ -8,13 +8,16 @@ Note: Computer docking and virtual screening are inexact, but potentially very v
 -----------------------
 
 To run the application, the user must submit a job using the [TACC API (TAPIS) UTRC Portal system](https://utrc.tacc.utexas.edu/). The following inputs are allowed:
-- __Protein Receptor__: The user _must_ upload a .pdb- or .pdbqt-formatted protein receptor file
-- __Grid Center__: The user _may_ specify X-Y-Z coordinates; default is x: 15.190, y: 53.903, z: 16.917
-- __Box Size__: The user _may_ specify X-Y-Z size limits; default is 20-20-20
-- __Scoring Method__: The user _must_ specify which scoring method to use (either AutoDock Vina or AutoDock4); default is Vina. More details on the differences can be found [here](https://autodock-vina.readthedocs.io/en/latest/faq.html)
-- __Docking Type__: The user _must_ specify whether this is basic or flexible docking; default is basic
-- __Flex Residues__: If Flexible Docking is chosen, the user _must_ specify the specific flexible residues (e.g. THR315)
-- __Ligand Library__: The user _must_ choose one of the ligand libraries to run this virtual screening on
+- __Ligand Library__: The user must choose one of the ligand libraries to run this virtual screening on
+- __Protein Receptor__: The user must upload a .pdb- or .pdbqt-formatted protein receptor file
+- __Grid Center__: The user must specify X-Y-Z coordinates of the center of the search area
+- __Box Size__: The user must specify X-Y-Z size limits; default is 20-20-20
+- __Run Time__: The user must enter maximum allowed runtime. See [documentation](drugdiscovery.tacc.utexas.edu/documentation) for assistance choosing an appropriate runtime
+- __Processors on Each Node__: The user must set this to 32
+- __Node Count__: The user must set this to a specific number based on the chosen ligand library:
+    --__Enamine-HTSC__: 10
+    --__Enamine-AC__: 3
+    --__All others__: 1
 
 
  Output Visualization:

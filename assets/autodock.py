@@ -99,6 +99,10 @@ POSES = 1 # If set to 1, only saves the best pose/score to the output ligand .pd
 EXHAUSTIVENESS = 8
 MAX_SIDECHAINS = 6
 
+logging.debug(f"TASKS = {TASKS}; NODES = {NODES}; EXPECTED TASKS = {EXPECTED_TASKS}; EXPECTED NODES = {EXPECTED_NODES}")
+logging.debug(f"CENTER = {args.center}; BOX = {args.size}; DOCKING = {DOCKING}")
+logging.debug(f"LIGAND LIBRARY = {args.ligand_library}; LIBRARY SHORT = {LIBRARY_SHORT}")
+
 def main():
     if RANK == 0:
         start_time = time.time()
@@ -106,18 +110,23 @@ def main():
         pre_processing()
         ligands = prep_ligands()
         # Let other ranks know pre-processing is finished; they can now ask for work
+        logging.debug("Pre-processing finished; Starting sendrecv with all ranks")
         for i in range(1,SIZE):
             COMM.sendrecv('pre-processing finished; ask for work', dest=i)
+        logging.debug("Sendrecv finished; All ranks responded; Starting main work")
 
         # Until all ligands have been docked, send more work to worker ranks
         while ligands:
             source = COMM.recv(source=MPI.ANY_SOURCE)
             COMM.send(ligands.pop(), dest=source)
+        logging.debug("Rank 0: List of ligands is now empty")
 
         # When all ligands have been sent, let worker ranks know they can stop
+        logging.debug("Tell all ranks there is no more work")
         for i in range(1,SIZE):
             COMM.send('no more ligands', dest=i)
             COMM.recv(source=i)
+        logging.debug("All ranks have responded; Proceeding to post-processing")
 
         # Post-Processing
         sort()
@@ -195,6 +204,7 @@ def check_user_configs():
                         Expected #Nodes for {LIBRARY_SHORT}={EXPECTED_NODES}.\n \
                         Expected #Tasks for {LIBRARY_SHORT}={EXPECTED_TASKS}.')
         COMM.Abort()
+    logging.debug("User configs checked. No aborts called")
 
 
 def prep_config():
@@ -203,6 +213,7 @@ def prep_config():
     with open('./configs/config.config', 'w+') as f:
         for config, value in USER_CONFIGS.items():
             f.write(f'{config} = {value}\n')
+    logging.debug("Config file written")
 
 
 def prep_maps():
@@ -214,6 +225,7 @@ def prep_maps():
         subprocess.run([f"python3 ./scripts/write-gpf.py --box {'./configs/config.config'} \
                         {RECEPTOR}.pdbqt"], shell=True)
         subprocess.run([f"autogrid4 -p {RECEPTOR}.gpf"], shell=True)
+    logging.debug("Affinity maps generated")
 
 
 def prep_receptor():
@@ -223,6 +235,7 @@ def prep_receptor():
     if FULL_RECEPTOR.endswith('.pdb'):
         try:
             subprocess.run([f'prepare_receptor -r {RECEPTOR}.pdb'], shell=True)
+            logging.debug("Receptor prepped successfully")
         except Exception as e:
             logging.error(f"error on rank {RANK}: error prepping receptor")
             logging.debug(e)
@@ -232,6 +245,7 @@ def prep_receptor():
             subprocess.run([f"pythonsh ./scripts/prepare_flexreceptor.py \
                 -g {RECEPTOR}.pdbqt -r {RECEPTOR}.pdbqt \
                 -s {'_'.join(SIDECHAINS)}"], shell=True)
+            logging.debug("Flex receptor prepped successfully")
         except Exception as e:
             logging.error(f"error on rank {RANK}: error prepping flex receptor")
             logging.debug(e)
@@ -247,6 +261,7 @@ def prep_ligands():
         for filename in filenames:
             if filename.endswith('.pkl') or filename.endswith('.dat'):
                 ligand_paths.append(f'{dirpath}/{filename}')
+    logging.debug(f"Ligands prepped. Number of ligand batch files = {len(ligand_paths)}")
     return ligand_paths
 
 
@@ -254,15 +269,30 @@ def run_docking(ligands, v, directory):
     # Runs AutoDock on each ligand in the given set; outputs a .pdbqt file 
     #   showing the pose and all scores; appends the ligand name (filename) 
     #   and it's best pose/score to a temporary results file
+    if not bool(ligands):
+        logging.error("Ligand batch was set to empty; no ligands docked")
+        return
     output_directory = f'./output/pdbqt/{RANK}{directory}'
     if not exists(output_directory):
         os.makedirs(output_directory)
     for _, filename in enumerate(ligands):
         ligand = ligands[filename]
-        v.set_ligand_from_string(ligand)
-        v.dock(exhaustiveness=EXHAUSTIVENESS)
-        v.write_poses(f'{output_directory}/output_{filename}', \
-                      n_poses=POSES, overwrite=True)
+        try:
+            v.set_ligand_from_string(ligand)
+        except Exception as e:
+            logging.error(f"Error setting ligand {ligand}; Error = {e}")
+            continue
+        try:
+            v.dock(exhaustiveness=EXHAUSTIVENESS)
+        except Exception as e:
+            logging.error(f"Error docking ligand {ligand}; Error = {e}")
+            continue
+        try:
+            v.write_poses(f'{output_directory}/output_{filename}', \
+                           n_poses=POSES, overwrite=True)
+        except Exception as e:
+            logging.error(f"Error writing ligand {ligand}; Error = {e}")
+            continue
         subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' \
                         {output_directory}/output_{filename} \
                         | awk '{{print $4}}' >> results_{RANK}.txt; echo {filename} \
@@ -275,8 +305,16 @@ def unpickle_and_decompress(path_to_file):
     #   and values are the actual ligand strings
     with open(path_to_file, 'rb') as f:
         compressed_pickle = f.read()
-    depressed_pickle = blosc.decompress(compressed_pickle)
-    dictionary_of_ligands = pickle.loads(depressed_pickle)
+    try:
+        depressed_pickle = blosc.decompress(compressed_pickle)
+    except Exception as e:
+            logging.error(f"Error decompressing ligand batch {compressed_pickle}; Error = {e}")
+            depressed_pickle = ''
+    try:
+        dictionary_of_ligands = pickle.loads(depressed_pickle)
+    except Exception as e:
+            logging.error(f"Error unpickling ligand batch {depressed_pickle}; Error = {e}")
+            dictionary_of_ligands = {}
     return dictionary_of_ligands
 
 
@@ -397,8 +435,4 @@ def reset():
     shutil.rmtree('./configs')
         
 
-try:
-    main()
-except:
-    logging.error('Error on main().')
-    logging.debug(Exception)
+main()
