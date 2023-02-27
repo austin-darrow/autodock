@@ -90,10 +90,10 @@ NODES = int(os.environ['SLURM_NNODES']) # What the user chose on the web portal
 if LIBRARY_SHORT in ['Test-set-compressed', 'Enamine-PC-compressed', 'ZINC-fragments-compressed', 'ZINC-in-trials-compressed']:
     EXPECTED_NODES = 1
     EXPECTED_TASKS = 32
-elif LIBRARY_SHORT == 'Enamine-HTSC':
+elif LIBRARY_SHORT == 'Enamine-HTSC-compressed':
     EXPECTED_NODES = 10
     EXPECTED_TASKS = 320
-elif LIBRARY_SHORT == 'Enamine-AC':
+elif LIBRARY_SHORT == 'Enamine-AC-compressed':
     EXPECTED_NODES = 3
     EXPECTED_TASKS = 96
 CPUS = 4
