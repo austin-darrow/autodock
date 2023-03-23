@@ -1,12 +1,12 @@
 {
   "checkpointable": false,
   "name": "{{ app.name }}",
-  "executionSystem": "tacc.ls6.adarrow",
+  "executionSystem": "tacc.ls6.tiffhuff",
   "executionType": "HPC",
   "deploymentPath": "{{ username }}/apps/{{ app.name }}-{{ app.version }}",
-  "deploymentSystem": "tacc.work.adarrow",
+  "deploymentSystem": "tacc.work.tiffhuff",
   "helpURI": "https://drugdiscovery.tacc.utexas.edu/#/documentation",
-  "label": "Autodock Vina 1.2.3.0",
+  "label": "Autodock Vina 1.2.3.1",
   "shortDescription": "{{ app.description }}",
   "longDescription": "This application provides a graphical interface for conducting molecular docking experiments for identifying small molecules that bind to your target protein using Autodock Vina docking software. This application is intended to provide easy access to researchers wishing to perform small numbers of docking or virtual screening experiments. Visit the linked documentation page for a tutorial on running a job here.",
   "modules": [
@@ -61,7 +61,7 @@
         "type": "enumeration",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 1
       },      
       "details": {
         "label": "Ligand Library",
@@ -75,7 +75,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 2
       },
       "details": {
         "label": "Center X-Coordinate",
@@ -89,7 +89,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 3
       },
       "details": {
         "label": "Center Y-Coordinate",
@@ -103,7 +103,7 @@
         "type": "number",
         "visible": true,   
         "required": true,
-        "order": 1000
+        "order": 4
       },
       "details": {
         "label": "Center Z-Coordinate",
@@ -117,7 +117,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 5
       },
       "details": {
         "label": "Grid Box X-Value",
@@ -131,7 +131,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 6
       },
       "details": {
         "label": "Grid Box Y-Value",
@@ -145,7 +145,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000   
+        "order": 7   
       },
       "details": {
         "label": "Grid Box Z-Value",
@@ -162,7 +162,7 @@
         "type": "enumeration",
         "visible": false,
         "required": true,
-        "order": 1000   
+        "order": 8   
       },
       "details": {
         "label": "Scoring Method",
@@ -179,7 +179,7 @@
         "type": "enumeration",
         "visible": false, 
         "required": true,
-        "order": 1000
+        "order": 9
       },
       "details": {
         "label": "Docking Type",
@@ -193,7 +193,7 @@
         "type": "string",
         "visible": false,
         "required": false,
-        "order": 1000   
+        "order": 10   
       },
       "details": {
         "label": "Flexible Sidechains",
@@ -207,7 +207,7 @@
         "type": "number",
         "visible": true,
         "required": true,
-        "order": 1000
+        "order": 11
       },
       "details": {
         "label": "Returned Scores",
