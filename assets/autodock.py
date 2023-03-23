@@ -128,7 +128,9 @@ def main():
         for i in range(1,SIZE):
             COMM.send('no more ligands', dest=i)
             COMM.recv(source=i)
-        logging.debug("All ranks have responded; Proceeding to post-processing")
+        time.sleep(10)
+        current_time = time.strftime("%H:%M:%S")
+        logging.debug(f"Rank {RANK}: All ranks have responded; Proceeding to post-processing at {current_time}")
 
         # Post-Processing
         sort()
@@ -181,7 +183,8 @@ def check_user_configs():
                 logging.error("Please provide valid flexible sidechain \
                               names, separated by underscores (e.g. THR315_GLU268).")
                 COMM.Abort()
-                  
+
+    logging.debug(f'X-bounds = {min(xbounds)} - {max(xbounds)} | Y-bounds = {min(ybounds)} - {max(ybounds)} | Z-bounds = {min(zbounds)} - {max(zbounds)}')       
     if not (min(xbounds)) <= CENTER_X <= (max(xbounds)):
         logging.error("Center x coordinate is not within bounds.")
         COMM.Abort()
@@ -227,7 +230,7 @@ def prep_maps():
         subprocess.run([f"python3 ./scripts/write-gpf.py --box {'./configs/config.config'} \
                         {RECEPTOR}.pdbqt"], shell=True)
         subprocess.run([f"autogrid4 -p {RECEPTOR}.gpf"], shell=True)
-    logging.debug("Affinity maps generated")
+        logging.debug("Affinity maps generated")
 
 
 def prep_receptor():
@@ -279,21 +282,24 @@ def run_docking(ligands, v, directory):
         os.makedirs(output_directory)
     for _, filename in enumerate(ligands):
         ligand = ligands[filename]
+        if not bool(ligand) or ligand == {}:
+            logging.error(f"Rank {RANK}: Ligand {filename} string was empty; skipping")
+            continue
         try:
             v.set_ligand_from_string(ligand)
         except Exception as e:
-            logging.error(f"Error setting ligand {ligand}; Error = {e}")
+            logging.error(f"Rank {RANK}: Error setting ligand {filename}; Error = {e}")
             continue
         try:
             v.dock(exhaustiveness=EXHAUSTIVENESS)
         except Exception as e:
-            logging.error(f"Error docking ligand {ligand}; Error = {e}")
+            logging.error(f"Rank {RANK}: Error docking ligand {filename}; Error = {e}")
             continue
         try:
             v.write_poses(f'{output_directory}/output_{filename}', \
                            n_poses=POSES, overwrite=True)
         except Exception as e:
-            logging.error(f"Error writing ligand {ligand}; Error = {e}")
+            logging.error(f"Rank {RANK}: Error writing ligand {filename}; Error = {e}")
             continue
         subprocess.run([f"grep -i -m 1 'REMARK VINA RESULT:' \
                         {output_directory}/output_{filename} \
@@ -310,12 +316,12 @@ def unpickle_and_decompress(path_to_file):
     try:
         depressed_pickle = blosc.decompress(compressed_pickle)
     except Exception as e:
-            logging.error(f"Error decompressing ligand batch {compressed_pickle}; Error = {e}")
+            logging.error(f"Error on rank {RANK}: Error decompressing ligand batch {compressed_pickle}; Error = {e}")
             depressed_pickle = ''
     try:
         dictionary_of_ligands = pickle.loads(depressed_pickle)
     except Exception as e:
-            logging.error(f"Error unpickling ligand batch {depressed_pickle}; Error = {e}")
+            logging.error(f"Error on rank {RANK}: Error unpickling ligand batch {depressed_pickle}; Error = {e}")
             dictionary_of_ligands = {}
     return dictionary_of_ligands
 
@@ -358,6 +364,8 @@ def processing():
         COMM.send(RANK,dest=0) # Ask rank 0 for another set of ligands
         ligand_set_path = COMM.recv(source=0) # Wait for a response
         if ligand_set_path == 'no more ligands':
+            current_time = time.strftime("%H:%M:%S")
+            logging.debug(f"Rank {RANK} has finished all work at {current_time}")
             COMM.send('message received--proceed to post-processing',dest=0)
             break
         try:
@@ -406,12 +414,14 @@ def sort():
 def isolate_output():
     # Copies the user-specified top n ligand output files to a single directory
     top_ligand_filenames = []
+    ligands_docked = 0
     
     with open('./output/results/sorted_scores.txt', 'r') as results:
         for _, line in enumerate(results):
             top_ligand_filenames.append(line.split()[0])
 
     for dirpath, _, filenames in os.walk('./output/pdbqt'):
+        ligands_docked += len(filenames)
         for top_filename in top_ligand_filenames:
             for filename in filenames:
                 if filename == f'output_{top_filename}':
@@ -424,17 +434,21 @@ def isolate_output():
             combined.write(lines)
     combined.close()
     
+    logging.info(f"Total ligands docked = {ligands_docked}")
     subprocess.run([f'tar -czf results.tar.gz ./output/results'], shell=True)
 
 
 def reset():
     # Reset directory by removing all created files from this job
+    reset_log = open('reset.log', 'w')
     for dirpath, _, filenames in os.walk('.'):
         for filename in filenames:
             if filename.endswith(('.map', '.txt', '.gpf', '.fld', '.xyz')):
+                reset_log.write(f"Removed {filename}\n")
                 os.remove(f'{dirpath}/{filename}') 
     shutil.rmtree('./output')
     shutil.rmtree('./configs')
+    reset_log.close()
         
 
 main()
