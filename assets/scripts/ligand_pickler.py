@@ -40,10 +40,11 @@ def pickle_and_compress(chunked_list_of_dicts):
             subdirectory += 1
 
 def main():
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in [f for f in filenames]:    
-            ligand = open(f'{dirpath}/{filename}', 'r')
-            ligands[filename] = ligand.read()
+    for dirpath, _, filenames in os.walk(path):
+        for filename in [f for f in filenames]:
+            if filename.endswith('.pdbqt'): 
+                ligand = open(f'{dirpath}/{filename}', 'r')
+                ligands[filename] = ligand.read()
 
     chunked_list_of_dicts = split_dict_to_multiple(ligands, MAX_LIGANDS_PER_SET)
     pickle_and_compress(chunked_list_of_dicts)
