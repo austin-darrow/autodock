@@ -173,10 +173,10 @@ def check_user_configs():
         while line:
             line = r.readline()
             if line.startswith('ATOM') or line.startswith('HETATM'):
-                xbounds.append(float(line.split()[6]))
-                ybounds.append(float(line.split()[7]))
-                zbounds.append(float(line.split()[8]))
-                all_sidechains.append(line.split()[3] + line.split()[5])
+                xbounds.append(float(line[30:38]))
+                ybounds.append(float(line[38:46]))
+                zbounds.append(float(line[46:54]))
+                all_sidechains.append(line[17:20] + line[22:26])
     if FLEXIBLE == True:
         for sidechain in SIDECHAINS:
             if not sidechain in all_sidechains:
