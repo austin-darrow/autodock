@@ -164,6 +164,9 @@ def check_user_configs():
           
     # User inputted grid center must be within the receptor's min/max bounds
     # User inputted sidechains must be found within the .pdbqt receptor file
+    # The coordinates are parsed according to the documentation on pdb files
+    # found here:
+    # https://www.cgl.ucsf.edu/chimera/docs/UsersGuide/tutorials/pdbintro.html
     all_sidechains = []
     xbounds = []
     ybounds = []
